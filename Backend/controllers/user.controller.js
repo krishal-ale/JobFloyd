@@ -63,3 +63,57 @@ export const login = async (req,res)=>{
         return res.status(500).json({message:"Something went wrong", success:false});
     }
 }
+
+export const logout = async (req,res)=>{
+    try {
+        return res.status(200).cookie('token', '', { httpOnly: true, maxAge: 0 }).json({message:"User logged out successfully", success:true});
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({message:"Something went wrong", success:false});
+    }
+}
+
+export const updateProfile = async (req,res) =>{
+    try {
+        const {fullName,email,phoneNumber,skills,bio} = req.body;
+        if(!fullName || !email || !phoneNumber || !skills || !bio){
+            return res.json({message:"All fields are required", success:false});
+        };
+        skillsList = skills.split(',');
+
+        const file = req.file;
+
+        const userId = req.id; //From Middleware
+
+        
+        const user = await User.findById(req.user._id);
+        if(!user){
+            return res.json({message:"User not found", success:false});
+        };
+
+       user.fullName = fullName;
+       user.email = email;
+       user.phoneNumber = phoneNumber;
+       user.profile.skills = skillsList;
+       user.profile.bio = bio;
+
+       user.save();
+
+
+
+       user = {
+        _id: user._id,
+       fullName : user.fullName,
+       email : user.email,
+       phoneNumber : user.phoneNumber,
+       skills : user.profile.skills,
+       bio : user.profile.bio};
+
+       res.json({message:"Profile updated successfully", success:true,});
+
+
+       
+    } catch (error) {
+        console.log(error);
+    }
+}
