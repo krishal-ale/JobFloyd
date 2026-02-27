@@ -5,12 +5,12 @@ import { logout } from "../controllers/user.controller";
 import { updateProfile } from "../controllers/user.controller";
 import { isAuthenticated } from "../middlewares/isAuthenticated";
 
-router = express.Router();
+userRouter = express.Router();
 
-router.route('/register').post(register);
-router.route('/login').post(login);
-router.route('/logout').post(logout);
-router.route('/updateProfile').post(isAuthenticated,updateProfile);
+userRouter.route('/register').post(register);
+userRouter.route('/login').post(login);
+userRouter.route('/logout').post(logout);
+userRouter.route('/updateProfile').post(isAuthenticated,updateProfile);
 
-export default router;
+export default userRouter;
 
