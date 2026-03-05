@@ -96,14 +96,14 @@ export const updateProfile = async (req,res) =>{
         if(!fullName || !email || !phoneNumber || !skills || !bio){
             return res.json({message:"All fields are required", success:false});
         };
-        skillsList = skills.split(',');
+        const skillsList = skills.split(',');
 
         const file = req.file;
 
         const userId = req.id; //From Middleware
 
         
-        const user = await User.findById(req.user._id);
+        const user = await User.findById(userId);
         if(!user){
             return res.json({message:"User not found", success:false});
         };
