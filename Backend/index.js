@@ -4,10 +4,11 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import connectDB from './utils/db.js';
 import userRouter from './routes/user.route.js';
+import companyRouter from './routes/company.route.js';
 
 dotenv.config();
-const app = express();
 
+const app = express();
 
 // Middleware
 app.use(express.json());
@@ -21,22 +22,24 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Routes
-app.use('/jobFloyd/users', userRouter);
-
+app.use('/jobfloyd/user', userRouter);
+app.use('/jobfloyd/company', companyRouter);
 
 const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
+  console.log("Starting server...");
+
   try {
-    await connectDB();  
+    await connectDB();
+    console.log("Database connected successfully"); 
 
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+      console.log(`Server is running on port ${PORT}`); 
     });
-
-  } catch (err) {
-    console.log("Database connection failed:", err);
-    process.exit(1);  
+  } catch (error) {
+    console.error("Failed to start server:", error.message);
+    process.exit(1);
   }
 };
 

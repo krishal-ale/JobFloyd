@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 
 export const register = async (req ,res)=>{
@@ -19,16 +20,22 @@ export const register = async (req ,res)=>{
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({message:"Something went wrong", success:false});
+
+        return res.status(500).json({
+            message: "Something went wrong",
+            success: false,
+            error: error.message,
+        });
     }
 }
 
 export const login = async (req,res)=>{
     try {
-        const {email,password} = req.body;
-        if(!email || !password){
+        const {email,password,role} = req.body;
+        if(!email || !password, !role){
             return res.status(400).json({message:"All fields are required", success:false});
         };
+
         const user = await User.findOne({email});   
         if(!user){
             return res.status(400).json({message:"User not found", success:false});
@@ -38,15 +45,15 @@ export const login = async (req,res)=>{
             return res.status(400).json({message:`Hello ${user.fullName}, your password is incorrect.`, success:false});
         };
 
-        if (role != user.role) {
+        if (role !== user.role) {
             return res.status(400).json({message:`Hello ${user.fullName}, Account does not match with your role.`, success:false});
         }
 
-        tokenData = { id: user._id}
+        const tokenData = { id: user._id}
 
-        token = jwt.sign(tokenData, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1h' });
 
-        user = {
+        const responseUser = {
             _id: user._id,
             fullName: user.fullName,
             email: user.email,
@@ -55,12 +62,17 @@ export const login = async (req,res)=>{
             profile: user.profile
         }
 
-        return res.status(200).cookie('token', token, { httpOnly: true }).json({message:"User logged in successfully", success:true,user, token});
+        return res.status(200).cookie('token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000, sameSite: 'strict', secure: true}).json({message:"Hi " + user.fullName, success:true,responseUser, token});
         
 
     } catch (error) {
         console.log(error);
-        return res.status(500).json({message:"Something went wrong", success:false});
+
+        return res.status(500).json({
+            message: "Something went wrong",
+            success: false,
+            error: error.message,
+        });
     }
 }
 
@@ -69,7 +81,12 @@ export const logout = async (req,res)=>{
         return res.status(200).cookie('token', '', { httpOnly: true, maxAge: 0 }).json({message:"User logged out successfully", success:true});
     } catch (error) {
         console.log(error);
-        return res.status(500).json({message:"Something went wrong", success:false});
+
+        return res.status(500).json({
+            message: "Something went wrong",
+            success: false,
+            error: error.message,
+        });
     }
 }
 
@@ -115,5 +132,11 @@ export const updateProfile = async (req,res) =>{
        
     } catch (error) {
         console.log(error);
+
+        return res.status(500).json({
+            message: "Something went wrong",
+            success: false,
+            error: error.message,
+        });
     }
 }
