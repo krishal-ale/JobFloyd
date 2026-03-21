@@ -1,90 +1,123 @@
-import React from 'react'
-import { PopoverContent, PopoverTrigger, Popover } from '../ui/popover'
-import { Avatar, AvatarImage } from '../ui/avatar'
-import { Button } from '../ui/button'
-import { LogOut, User2 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import React, { useState } from "react";
+import { PopoverContent, PopoverTrigger, Popover } from "../ui/popover";
+import { Avatar, AvatarImage } from "../ui/avatar";
+import { Button } from "../ui/button";
+import { LogOut, User2, Menu, X } from "lucide-react";
+import { Link, useLocation } from "react-router-dom"; // 👈 import useLocation
+import { useSelector } from "react-redux";
+import logo from "../../assets/logo.png";
+
 
 const NavBar = () => {
 
-  const user = false;
+  const { user } = useSelector(store => store.authSlice);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation(); 
+
   return (
-    <div className='bg-white border-b border-gray-100 shadow-sm'>
-      <div className='flex items-center justify-between mx-auto max-w-7xl h-16 px-4'>
+    <nav className="bg-white border-b border-slate-100 shadow-sm sticky top-0 z-50">
+      <div className="flex items-center justify-between mx-auto max-w-7xl h-14 sm:h-16 px-4 sm:px-6">
 
-        {/* Logo */}
-        <div>
-          <h1 className='text-2xl font-bold tracking-tight'>
-            Job<span className='text-blue-800'>Floyd</span>
-          </h1>
-        </div>
+        
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight flex items-center">
+          <img src={logo} alt="JobFloyd" className="h-12 sm:h-14 w-auto object-contain" />Job <span className="text-[#0066FF] font-bold">Floyd</span>
+        </h1>
 
-        {/* Navbar  */}
-        <div className='flex items-center gap-10'>
-          <ul className='flex font-medium items-center gap-8 text-gray-600'>
-            <li className='hover:text-blue-800 cursor-pointer transition-colors duration-200'>Home</li>
-            <li className='hover:text-blue-800 cursor-pointer transition-colors duration-200'>Jobs</li>
-            <li className='hover:text-blue-800 cursor-pointer transition-colors duration-200'>Browse</li>
-          </ul>
+        <ul className="hidden md:flex font-medium items-center gap-10 text-gray-600 text-lg">
+          <li className="relative cursor-pointer group">
+            <span className={`transition-colors duration-200 ${location.pathname === "/" ? "text-[#0066FF]" : "group-hover:text-[#0066FF]"}`}>
+              <Link to="/">Home</Link>
+            </span>
+            <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#0066FF] transition-all duration-300 ${location.pathname === "/" ? "w-full" : "w-0 group-hover:w-full"}`}></span>
+          </li>
+          <li className="relative cursor-pointer group">
+            <span className={`transition-colors duration-200 ${location.pathname === "/jobs" ? "text-[#0066FF]" : "group-hover:text-[#0066FF]"}`}>
+              <Link to="/jobs">Jobs</Link>
+            </span>
+            <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#0066FF] transition-all duration-300 ${location.pathname === "/jobs" ? "w-full" : "w-0 group-hover:w-full"}`}></span>
+          </li>
+          <li className="relative cursor-pointer group">
+            <span className={`transition-colors duration-200 ${location.pathname === "/browse" ? "text-[#0066FF]" : "group-hover:text-[#0066FF]"}`}>
+              <Link to="/browse">Browse</Link>
+            </span>
+            <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#0066FF] transition-all duration-300 ${location.pathname === "/browse" ? "w-full" : "w-0 group-hover:w-full"}`}></span>
+          </li>
+        </ul>
 
-          {
-            !user? (
-              <div className='flex items-center gap-3'>
-               <Link to="/login"> <Button variant="outline" className="hover:bg-blue-800 hover:text-white" >Login</Button></Link>
-                <Link to="/signup"> <Button className="hover:bg-blue-800">Sign Up</Button></Link>
-              </div>
-            ) : 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Avatar className='cursor-pointer ring-2 ring-blue-100 hover:ring-blue-400 transition-all duration-200'>
-                <AvatarImage src="https://github.com/shadcn.png" alt="shadcn" />
-              </Avatar>
-            </PopoverTrigger>
-
-            <PopoverContent className='w-60 p-4 shadow-lg rounded-xl border border-gray-100'>
-
-             
-              <div className='flex items-center gap-3 pb-3 border-b border-gray-100'>
-                <Avatar className='h-10 w-10'>
-                  <AvatarImage src="https://github.com/shadcn.png" alt="shadcn" />
+        <div className="flex items-center gap-3">
+          {!user ? (
+            <>
+              <Link to="/login">
+                <Button variant="outline" className="border-[#0066FF] text-[#0066FF] hover:bg-[#0066FF] hover:text-white text-sm">
+                  Login
+                </Button>
+              </Link>
+              <Link to="/signup" className="hidden sm:block">
+                <Button className="bg-[#0066FF] hover:bg-blue-800 hover:text-white text-sm">
+                  Sign Up
+                </Button>
+              </Link>
+            </>
+          ) : (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Avatar className="cursor-pointer ring-2 ring-blue-100 hover:ring-blue-400 transition-all duration-200 h-9 w-9">
+                  <AvatarImage src="https://github.com/shadcn.png" alt="user" />
                 </Avatar>
-                <div>
-                  <h3 className='font-semibold text-gray-900 text-sm'>Krishal Ale</h3>
-                  <p className='text-xs text-gray-500 leading-snug line-clamp-2'>
-                    Lorem ipsum dolor sit amet consectetur.
-                  </p>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-4 shadow-md rounded-xl border border-slate-100">
+                <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src="https://github.com/shadcn.png" alt="user" />
+                  </Avatar>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-sm">Krishal Ale</h3>
+                    <p className="text-xs text-gray-400 line-clamp-2 leading-snug">
+                      Lorem ipsum dolor sit amet consectetur.
+                    </p>
+                  </div>
                 </div>
-              </div>
+                <div className="flex flex-col gap-2 mt-3">
+                  <Button variant="secondary" className="w-full justify-center gap-2 text-sm hover:text-[#0066FF] hover:bg-blue-50">
+                    <User2 className="h-4 w-4" />
+                    <Link to="/profile">View Profile</Link>
+                  </Button>
+                  <Button variant="destructive" className="w-full justify-center gap-2 text-sm">
+                    <LogOut className="h-4 w-4" /> Log Out
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
 
-              
-              <div className='flex flex-col items-center gap-2 mt-3'>
-                <Button
-                  variant="secondary"
-                  className='w-40 justify-center gap-2 text-gray-700 hover:text-blue-800 hover:bg-blue-50 transition-colors duration-200'
-                >
-                  <User2 className='h-4 w-4' />
-                  View Profile
-                </Button>
-
-                <Button
-                  variant='destructive'
-                  className='w-40 justify-center gap-2 hover:opacity-90 transition-opacity duration-200'
-                >
-                  <LogOut className='h-4 w-4' />
-                  Log Out
-                </Button>
-              </div>
-
-            </PopoverContent>
-          </Popover>
-          }
-
-          
+          {/* Mobile menu toggle */}
+          <button
+            className="md:hidden p-2 rounded-md text-gray-500 hover:text-[#0066FF] hover:bg-slate-50 transition-colors"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
-
       </div>
-    </div>
-  )
-}
 
-export default NavBar
+      {/* Mobile Menu */}
+      {menuOpen && (
+        <div className="md:hidden border-t border-slate-100 bg-white px-4 py-3 flex flex-col gap-1">
+          <ul className="flex flex-col font-medium text-gray-600 text-sm">
+            <li className={`py-2.5 border-b border-slate-100 cursor-pointer transition-colors duration-200 underline-offset-4 ${location.pathname === "/" ? "text-[#0066FF] underline" : "hover:text-[#0066FF] hover:underline"}`}>
+              <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
+            </li>
+            <li className={`py-2.5 border-b border-slate-100 cursor-pointer transition-colors duration-200 underline-offset-4 ${location.pathname === "/jobs" ? "text-[#0066FF] underline" : "hover:text-[#0066FF] hover:underline"}`}>
+              <Link to="/jobs" onClick={() => setMenuOpen(false)}>Jobs</Link>
+            </li>
+            <li className={`py-2.5 cursor-pointer transition-colors duration-200 underline-offset-4 ${location.pathname === "/browse" ? "text-[#0066FF] underline" : "hover:text-[#0066FF] hover:underline"}`}>
+              <Link to="/browse" onClick={() => setMenuOpen(false)}>Browse</Link>
+            </li>
+          </ul>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default NavBar;

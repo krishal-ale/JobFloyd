@@ -1,0 +1,42 @@
+import React from 'react'
+import { Badge } from "@/components/ui/badge"
+import { MapPin } from 'lucide-react'
+
+const LatestJobCards = () => {
+  return (
+    <div className='p-5 rounded-2xl bg-white border border-gray-100 shadow-md cursor-pointer hover:shadow-blue-100 hover:border-[#0066FF] transition-all duration-200'>
+
+      {/* Company info */}
+      <div className='mb-4'>
+        <h1 className='font-semibold text-gray-900 text-sm'>Company Name</h1>
+        <p className='text-xs text-gray-400 flex items-center gap-1 mt-1'>
+          <MapPin className='h-3 w-3' /> Nepal
+        </p>
+      </div>
+
+      {/* Job info */}
+      <div className='mb-4'>
+        <h1 className='font-bold text-lg text-gray-900 mb-1'>Job Title</h1>
+        <p className='text-gray-500 text-sm leading-relaxed'>
+          Lorem ipsum, dolor sit amet consectetur adipisicing elit.
+        </p>
+      </div>
+
+      {/* Badges */}
+      <div className='flex items-center gap-2 flex-wrap'>
+        <Badge className='bg-blue-50 text-[#0066FF] border border-blue-100 rounded-full text-xs font-medium' variant='ghost'>
+          12 Positions
+        </Badge>
+        <Badge className='bg-green-50 text-green-700 border border-green-100 rounded-full text-xs font-medium' variant='ghost'>
+          Full Time
+        </Badge>
+        <Badge className='bg-orange-50 text-orange-600 border border-orange-100 rounded-full text-xs font-medium' variant='ghost'>
+          22 LPA
+        </Badge>
+      </div>
+
+    </div>
+  )
+}
+
+export default LatestJobCards

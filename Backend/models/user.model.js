@@ -13,7 +13,6 @@ const userSchema = new mongoose.Schema({
   phoneNumber: {
     type: Number,
     required: true,
-    unique: true,
   },
   password: {
     type: String,
@@ -27,7 +26,7 @@ const userSchema = new mongoose.Schema({
   profile:{
     bio:{type: String},
     skills:[{type: String}],
-    resume:{type: String}, //URL to the resume file
+    resume:{type: String}, //URL of resume file
     resumeOriginalName:{type: String},
     company:{type:mongoose.Schema.Types.ObjectId,ref:'Company'}, 
     profilePhoto:{

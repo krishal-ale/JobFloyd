@@ -7,6 +7,7 @@ import userRouter from './routes/user.route.js';
 import companyRouter from './routes/company.route.js';
 import jobRouter from './routes/job.route.js';
 
+
 dotenv.config();
 
 const app = express();
@@ -28,6 +29,9 @@ app.use('/jobfloyd/company', companyRouter);
 app.use('/jobfloyd/job', jobRouter);
 
 const PORT = process.env.PORT || 3000;
+
+import { setServers } from 'dns';
+setServers(['8.8.8.8', '8.8.4.4']);
 
 const startServer = async () => {
   console.log("Starting server...");
