@@ -6,6 +6,7 @@ import SignUp from './pages/SignUp'
 import Jobs from './pages/Jobs'
 import Browse from './pages/Browse'
 import Profile from './pages/Profile'
+import JobsDescription from './pages/JobsDescription'
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
         <Route path="/jobs" element={<Jobs/>} />
         <Route path="/browse" element={<Browse/>} />
         <Route path="/profile" element={<Profile/>} />
+        <Route path="/jobs/description/:id" element={<JobsDescription/>} />
       </Routes>
     </div>
   )

@@ -4,10 +4,15 @@ import FilterCard from "@/components/FilterCard";
 import JobsCards from "@/components/JobsCards";
 import Footer from "@/components/shared/Footer";
 import { SlidersHorizontal, X } from "lucide-react";
+import { useSelector } from "react-redux";
 
-const jobsArray = [1, 2, 3, 4, 5, 6, 7, 8];
+
+
+
 
 const Jobs = () => {
+  const {allJobs} = useSelector(store=>store.jobSlice)
+  
   const [filterOpen, setFilterOpen] = useState(false);
 
   return (
@@ -43,15 +48,17 @@ const Jobs = () => {
           </div>
 
           {/* Right side: job listings */}
-          {jobsArray.length <= 0 ? (
+          {allJobs.length <= 0 ? (
             <div className='flex-1 flex items-center justify-center text-gray-400 text-sm'>
               No jobs found
             </div>
           ) : (
             <div className="flex-1 pb-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {jobsArray.map((item, index) => (
-                  <JobsCards key={index} />
+                {allJobs.map((job) => (
+                  <div key={job._id}>
+                    <JobsCards job={job} />
+                  </div>
                 ))}
               </div>
             </div>

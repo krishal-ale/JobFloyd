@@ -3,9 +3,15 @@ import { PopoverContent, PopoverTrigger, Popover } from "../ui/popover";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { LogOut, User2, Menu, X } from "lucide-react";
-import { Link, useLocation } from "react-router-dom"; // 👈 import useLocation
+import { Link, useLocation, useNavigate } from "react-router-dom"; 
 import { useSelector } from "react-redux";
 import logo from "../../assets/logo.png";
+import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import axios from "axios";
+import { USER_API_END_POINT } from "@/utils/constant";
+import { setUser } from "@/redux/authSlice";
+
 
 
 const NavBar = () => {
@@ -13,6 +19,24 @@ const NavBar = () => {
   const { user } = useSelector(store => store.authSlice);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation(); 
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+
+  const logoutHandler = async () =>{
+    try {
+      const res = await axios.get(`${USER_API_END_POINT}/logout`);
+      if(res.data.success){
+        dispatch(setUser(null));
+        navigate("/");
+        toast.success(res.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response?.data?.message || "Logout failed");
+    }
+  }
 
   return (
     <nav className="bg-white border-b border-slate-100 shadow-sm sticky top-0 z-50">
@@ -68,12 +92,12 @@ const NavBar = () => {
               <PopoverContent className="w-56 p-4 shadow-md rounded-xl border border-slate-100">
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src="https://github.com/shadcn.png" alt="user" />
+                    <AvatarImage src={user?.profile?.profilePicture} alt="user" />
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-sm">Krishal Ale</h3>
+                    <h3 className="font-semibold text-gray-900 text-sm">{user?.fullName}</h3>
                     <p className="text-xs text-gray-400 line-clamp-2 leading-snug">
-                      Lorem ipsum dolor sit amet consectetur.
+                      {user?.profile?.bio}
                     </p>
                   </div>
                 </div>
@@ -82,7 +106,7 @@ const NavBar = () => {
                     <User2 className="h-4 w-4" />
                     <Link to="/profile">View Profile</Link>
                   </Button>
-                  <Button variant="destructive" className="w-full justify-center gap-2 text-sm">
+                  <Button variant="destructive" className="w-full justify-center gap-2 text-sm" onClick={logoutHandler}>
                     <LogOut className="h-4 w-4" /> Log Out
                   </Button>
                 </div>

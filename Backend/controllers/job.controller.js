@@ -1,4 +1,5 @@
 import Job from "../models/job.model.js";
+import Application from "../models/application.model.js";
 
 export const createJob = async (req,res) =>{
     try {
@@ -44,7 +45,9 @@ export const getAllJobs = async (req,res) =>{
                 { description: { $regex: keyword, $options: 'i' } },
             ]
         };
-        const jobs = await Job.find(query);
+        const jobs = await Job.find(query).populate({
+            path: 'company',
+        }).sort({ createdAt: -1 });
         if (!jobs) {
             return res.status(404).json({ message: 'No jobs found', success: false });
         }
@@ -60,10 +63,14 @@ export const getAllJobs = async (req,res) =>{
     }
 }
 
-export const getJobById = async (req,res) =>{
+// job.controller.js
+export const getJobById = async (req, res) => {
     try {
         const jobId = req.params.id;
-        const job = await Job.findById(jobId);
+        const job = await Job.findById(jobId)
+            .populate({ path: 'company' })
+            .populate({ path: 'applications' }); 
+
         if (!job) {
             return res.status(404).json({ message: 'Job not found', success: false });
         }
@@ -78,21 +85,23 @@ export const getJobById = async (req,res) =>{
     }
 }
 
-export const getJobsByEmployerId = async (req,res) =>{
+export const getJobsByEmployerId = async (req, res) => {
     try {
         const userId = req.id;
 
-        const jobs = await Job.find({ created_by: userId });
-        if (!jobs) {
+        const jobs = await Job.find({ created_by: userId }).sort({ createdAt: -1 });
+        
+        if (!jobs || jobs.length === 0) { 
             return res.status(404).json({ message: 'No jobs found', success: false });
         }
         return res.status(200).json({ message: 'Jobs found', success: true, jobs });
+
     } catch (error) {
         console.log(error);
         return res.status(500).json({
             message: "Something went wrong",
             success: false,
             error: error.message,
-        });
+        }); 
     }
 }

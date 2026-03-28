@@ -5,8 +5,11 @@ import Hero from '@/components/Hero'
 import Category from '@/components/Category'
 import LatestJobs from '@/components/LatestJobs'
 import Footer from '@/components/shared/Footer'
+import useGetAllJobs from '@/hooks/useGetAllJobs'
+
 
 const Home = () => {
+  useGetAllJobs();
   return (
     <div>
       <NavBar />
