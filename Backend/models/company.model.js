@@ -13,15 +13,15 @@ const companySchema = new mongoose.Schema({
     },
     industry:{
         type: String,
-        required: true,
+
     },
     pan_vat_num:{
         type: String,
-        required: true,
+        
     },
     location:{
         type: String,
-        required: true,
+       
     },
     logo:{
         type:String
@@ -29,7 +29,7 @@ const companySchema = new mongoose.Schema({
     userId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
+        
     },  
 },{timestamps: true,});
 

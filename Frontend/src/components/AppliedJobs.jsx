@@ -1,8 +1,11 @@
 import React from 'react'
 import { TableBody, TableCaption, Table, TableHeader, TableRow, TableCell, TableHead } from './ui/table'
 import { Badge } from './ui/badge'
+import { useSelector } from 'react-redux'
+
 
 const AppliedJobs = () => {
+  const {allAppliedJobs} = useSelector(store=>store.jobSlice);
   return (
     <div className='rounded-xl border border-gray-100 overflow-hidden'>
       <Table>
@@ -18,14 +21,14 @@ const AppliedJobs = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {[1, 2, 3, 4].map((item, index) => (
-            <TableRow key={index} className='hover:bg-blue-50 transition-colors duration-150'>
-              <TableCell className='text-sm text-gray-700 font-medium'>Company {item}</TableCell>
-              <TableCell className='text-sm text-gray-600'>Job Role {item}</TableCell>
-              <TableCell className='text-sm text-gray-400'>2024-06-0{item}</TableCell>
+          {allAppliedJobs.length <= 0 ? <span>No Applied Jobs</span> : allAppliedJobs.map((appliedJob, index) => (
+            <TableRow key={appliedJob._id} className='hover:bg-blue-50 transition-colors duration-150'>
+              <TableCell className='text-sm text-gray-700 font-medium'>Company {appliedJob?.job?.company?.name}</TableCell>
+              <TableCell className='text-sm text-gray-600'>Job Role {appliedJob?.job?.title}</TableCell>
+              <TableCell className='text-sm text-gray-400'>2024-06-0{appliedJob.createdAt.split("T")[0]}</TableCell>
               <TableCell className='text-right'>
-                <Badge className='bg-green-50 text-green-700 border border-green-100 rounded-full text-xs font-medium' variant='ghost'>
-                  Selected
+                <Badge className={appliedJob.status === "pending" ? "bg-yellow-100 text-yellow-800 border border-yellow-200" : appliedJob.status === "accepted" ? "bg-green-100 text-green-800 border border-green-200" : "bg-red-100 text-red-800 border border-red-200"}>
+                  {appliedJob.status === "pending" ? "Pending" : appliedJob.status === "accepted" ? "Accepted" : "Rejected"}
                 </Badge>
               </TableCell>
             </TableRow>

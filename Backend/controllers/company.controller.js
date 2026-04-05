@@ -1,10 +1,12 @@
 import Company from '../models/company.model.js';
+import getDataUri from '../utils/dataUri.js';
+import cloudinary from '../utils/cloudinary.js';
 
 export const registerCompany = async (req, res) => {
     try {
         const { name, description, website, industry, pan_vat_num, location} = req.body;
-
-        if (!name || !pan_vat_num){
+       
+        if (!name){
             return res.status(400).json({ message: 'Name and PAN/VAT number are required', success: false });
         }    
         const existingCompany = await Company.findOne({ pan_vat_num });
@@ -56,13 +58,28 @@ export const getCompanyById = async (req, res) => {
 export const updateCompany = async (req, res) => {
     try {
         const { name, description, website, industry, pan_vat_num, location} = req.body;
+ 
+        const file = req.file;
+
+        const fileUri = getDataUri(file);
+        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+
+        let logo;
+if (req.file) {
+    const fileUri = getDataUri(req.file);
+    const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+    logo = cloudResponse.secure_url;
+}
+
+
         const company = await Company.findByIdAndUpdate(req.params.id, {
             name,
             description,
             website,
             industry,
             pan_vat_num,
-            location
+            location,
+            logo,
         }, { new: true });
         if (!company) {
             return res.status(404).json({ message: 'Company not found', success: false });

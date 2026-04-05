@@ -1,9 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "./ui/button";
 import { Search, TrendingUp } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { setSearchQuery } from "@/redux/jobSlice";
+import { useNavigate } from "react-router-dom";
+
 
 const Hero = () => {
+  const dispatch = useDispatch();
+  const naviagate = useNavigate();
+  const [query, setQuery]= useState("");
+
+  const searchJobHandler = ()=>{
+    dispatch (setSearchQuery(query));
+    naviagate("/browse")
+  }
+
   return (
     <div className="bg-[#0066FF] text-white px-4 py-14 sm:py-20">
 
@@ -34,8 +47,10 @@ const Hero = () => {
             type="text"
             placeholder="Search for jobs..."
             className="w-full border-none shadow-none focus-visible:ring-0 text-gray-700 text-sm sm:text-base"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
-          <Button className="bg-[#0066FF] hover:bg-blue-700 text-white rounded-full px-5 sm:px-7 py-5 text-xs sm:text-sm shrink-0">
+          <Button onClick={searchJobHandler} className="bg-[#0066FF] hover:bg-blue-700 text-white rounded-full px-5 sm:px-7 py-5 text-xs sm:text-sm shrink-0">
             Search
           </Button>
         </div>

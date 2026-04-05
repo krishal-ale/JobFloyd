@@ -2,6 +2,10 @@ import React from 'react'
 import { CarouselContent, Carousel, CarouselItem, CarouselPrevious } from "@/components/ui/carousel"
 import { Button } from "@/components/ui/button"
 import { CarouselNext } from "@/components/ui/carousel"
+import { useDispatch } from 'react-redux'
+import { setSearchQuery } from '@/redux/jobSlice'
+import { useNavigate } from 'react-router-dom'
+
 
 const category = [
     "Frontend Developer",
@@ -17,6 +21,13 @@ const category = [
 ]
 
 const Category = () => {
+  const dispatch = useDispatch();
+  const naviagate = useNavigate();
+
+  const searchJobHandler = (query)=>{
+      dispatch (setSearchQuery(query));
+      naviagate("/browse")
+    }
   return (
     <div className='bg-gray-50 px-4 py-10'>
 
@@ -34,6 +45,7 @@ const Category = () => {
               <Button
                 variant='outline'
                 className='rounded-full border-2 border-gray-200 text-gray-700 hover:border-[#0066FF] hover:text-[#0066FF] hover:bg-blue-50 transition-all duration-200 text-sm font-medium px-4 py-2 w-full'
+                onClick={()=>searchJobHandler(item)}
               >
                 {item}
               </Button>
