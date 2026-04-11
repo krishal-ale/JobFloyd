@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,9 @@ import { USER_API_END_POINT } from "@/utils/constant";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { setLoading } from "@/redux/authSlice";import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setLoading, setUser } from "@/redux/authSlice";
 import { Loader2 } from "lucide-react";
-import { setUser } from "@/redux/authSlice";
-
-
 
 const Login = () => {
   const [input, setInput] = useState({
@@ -22,42 +19,56 @@ const Login = () => {
     role: "",
   });
 
-  const {loading} = useSelector((state) => state.authSlice);
-
+  const { loading, user } = useSelector((state) => state.authSlice);
   const dispatch = useDispatch();
-
   const navigate = useNavigate();
-
 
   const onChangeHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
   };
 
-  const onSubmitHandler = async (e)=>{
+  const onSubmitHandler = async (e) => {
     e.preventDefault();
 
-    try{
+    if (!input.role) {
+      toast.error("Please select your role (Job Seeker or Employer)");
+      return;
+    }
+
+    try {
       dispatch(setLoading(true));
-       const res = await axios.post(`${USER_API_END_POINT}/login`, input, {
-        
+      const res = await axios.post(`${USER_API_END_POINT}/login`, input, {
         withCredentials: true,
-       });
-      if(res.data.success){
+      });
+      if (res.data.success) {
         dispatch(setUser(res.data.responseUser));
-        navigate("/");
         toast.success(res.data.message);
-        
-      }else{
+        // ADDED: redirect based on role
+        if (res.data.responseUser.role === "employer") {
+          navigate("/admin/company");
+        } else {
+          navigate("/");
+        }
+      } else {
         toast.error(res.data.message);
       }
-    } catch(error){
-      console.error("Error during sign up:", error);
-      toast.error(error.response?.data?.message || "Sign up failed. Please try again.");
-    } finally{
+    } catch (error) {
+      console.error("Error during login:", error);
+      toast.error(error.response?.data?.message || "Login failed. Please try again.");
+    } finally {
       dispatch(setLoading(false));
     }
-  }
+  };
 
+  useEffect(() => {
+    if (!loading && user) {
+      if (user.role === "employer") {
+        navigate("/admin/company");
+      } else {
+        navigate("/");
+      }
+    }
+  }, [user, loading]);
 
   return (
     <div className="h-screen flex flex-col">
@@ -131,14 +142,19 @@ const Login = () => {
               </div>
             </div>
           </div>
-          {
-            loading? <Button className="w-full bg-blue-500 hover:bg-[#0066FF] hover:text-black text-white font-medium py-2 cursor-pointer"><Loader2 className="mr-2 h-4 animate-spin" /> Loading...</Button> :  <Button
-            type="submit"
-            className="w-full bg-blue-500 hover:bg-[#0066FF] hover:text-black text-white font-medium py-2 cursor-pointer"
-          >
-            Login
-          </Button>
-          }
+
+          {loading ? (
+            <Button className="w-full bg-blue-500 hover:bg-[#0066FF] text-white font-medium py-2 cursor-pointer">
+              <Loader2 className="mr-2 h-4 animate-spin" /> Loading...
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              className="w-full bg-blue-500 hover:bg-[#0066FF] text-white font-medium py-2 cursor-pointer"
+            >
+              Login
+            </Button>
+          )}
 
           <p className="text-center text-sm text-gray-500 mt-4">
             Don't have an account?{" "}

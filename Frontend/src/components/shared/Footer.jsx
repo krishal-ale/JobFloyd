@@ -3,7 +3,7 @@ import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'luc
 
 const Footer = () => {
   return (
-    <footer className='bg-gray-900 text-gray-400 px-6 py-10 mt-10'>
+    <footer className='bg-gray-900 text-gray-400 px-6 py-10 mt-2'>
       <div className='max-w-7xl mx-auto flex flex-col sm:flex-row items-start justify-between gap-8'>
 
         {/* Left */}

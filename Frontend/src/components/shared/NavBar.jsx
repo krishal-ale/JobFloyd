@@ -12,19 +12,14 @@ import axios from "axios";
 import { USER_API_END_POINT } from "@/utils/constant";
 import { setUser } from "@/redux/authSlice";
 
-
-
 const NavBar = () => {
-
   const { user } = useSelector(store => store.authSlice);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation(); 
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-
-  const logoutHandler = async () =>{
+  const logoutHandler = async () => {
     try {
       const res = await axios.get(`${USER_API_END_POINT}/logout`);
       if(res.data.success){
@@ -41,16 +36,14 @@ const NavBar = () => {
   return (
     <nav className="bg-white border-b border-slate-100 shadow-sm sticky top-0 z-50">
       <div className="flex items-center justify-between mx-auto max-w-7xl h-14 sm:h-16 px-4 sm:px-6">
-
         
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight flex items-center">
           <img src={logo} alt="JobFloyd" className="h-12 sm:h-14 w-auto object-contain" />Job <span className="text-[#0066FF] font-bold">Floyd</span>
         </h1>
 
         <ul className="hidden md:flex font-medium items-center gap-10 text-gray-600 text-lg">
-          {
-            user && user.role === "employer" ? (
-              <>
+          {user && user.role === "employer" ? (
+            <>
               <li className="relative cursor-pointer group">
                 <span className={`transition-colors duration-200 ${location.pathname === "/admin/company" ? "text-[#0066FF]" : "group-hover:text-[#0066FF]"}`}>
                   <Link to="/admin/company">Company</Link>
@@ -63,9 +56,9 @@ const NavBar = () => {
                 </span>
                 <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#0066FF] transition-all duration-300 ${location.pathname === "/admin/jobs" ? "w-full" : "w-0 group-hover:w-full"}`}></span>
               </li>
-              </>
-            ) : (
-              <>
+            </>
+          ) : user && user.role === "jobseeker" ? (
+            <>
               <li className="relative cursor-pointer group">
                 <span className={`transition-colors duration-200 ${location.pathname === "/" ? "text-[#0066FF]" : "group-hover:text-[#0066FF]"}`}>
                   <Link to="/">Home</Link>
@@ -84,9 +77,15 @@ const NavBar = () => {
                 </span>
                 <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#0066FF] transition-all duration-300 ${location.pathname === "/browse" ? "w-full" : "w-0 group-hover:w-full"}`}></span>
               </li>
-              </>
-            )
-          }
+            </>
+          ) : (
+            <li className="relative cursor-pointer group">
+              <span className={`transition-colors duration-200 ${location.pathname === "/" ? "text-[#0066FF]" : "group-hover:text-[#0066FF]"}`}>
+                <Link to="/">Home</Link>
+              </span>
+              <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#0066FF] transition-all duration-300 ${location.pathname === "/" ? "w-full" : "w-0 group-hover:w-full"}`}></span>
+            </li>
+          )}
         </ul>
 
         <div className="flex items-center gap-3">
@@ -117,21 +116,17 @@ const NavBar = () => {
                   </Avatar>
                   <div>
                     <h3 className="font-semibold text-gray-900 text-sm">{user?.fullName}</h3>
-                    <p className="text-xs text-gray-400 line-clamp-2 leading-snug">
-                      {user?.profile?.bio}
-                    </p>
+                    <p className="text-xs text-gray-400 line-clamp-2 leading-snug">{user?.profile?.bio}</p>
                   </div>
                 </div>
-                {
-                  user && user.role === "jobseeker" && (
-                    <div className="flex flex-col gap-2 mt-3">
-                      <Button variant="secondary" className="w-full justify-center gap-2 text-sm hover:text-[#0066FF] hover:bg-blue-50">
-                        <User2 className="h-4 w-4" />
-                        <Link to="/profile">View Profile</Link>
-                      </Button>
-                    </div>
-                  )
-                }
+                {user && user.role === "jobseeker" && (
+                  <div className="flex flex-col gap-2 mt-3">
+                    <Button variant="secondary" className="w-full justify-center gap-2 text-sm hover:text-[#0066FF] hover:bg-blue-50">
+                      <User2 className="h-4 w-4" />
+                      <Link to="/profile">View Profile</Link>
+                    </Button>
+                  </div>
+                )}
                 <div className="flex flex-col gap-2 mt-3">
                   <Button variant="destructive" className="w-full justify-center gap-2 text-sm" onClick={logoutHandler}>
                     <LogOut className="h-4 w-4" /> Log Out
@@ -141,7 +136,6 @@ const NavBar = () => {
             </Popover>
           )}
 
-          {/* Mobile menu toggle */}
           <button
             className="md:hidden p-2 rounded-md text-gray-500 hover:text-[#0066FF] hover:bg-slate-50 transition-colors"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -151,7 +145,6 @@ const NavBar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {menuOpen && (
         <div className="md:hidden border-t border-slate-100 bg-white px-4 py-3 flex flex-col gap-1">
           <ul className="flex flex-col font-medium text-gray-600 text-sm">
@@ -164,7 +157,7 @@ const NavBar = () => {
                   <Link to="/admin/jobs" onClick={() => setMenuOpen(false)}>Jobs</Link>
                 </li>
               </>
-            ) : (
+            ) : user && user.role === "jobseeker" ? (
               <>
                 <li className={`py-2.5 border-b border-slate-100 cursor-pointer transition-colors duration-200 underline-offset-4 ${location.pathname === "/" ? "text-[#0066FF] underline" : "hover:text-[#0066FF] hover:underline"}`}>
                   <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
@@ -176,6 +169,10 @@ const NavBar = () => {
                   <Link to="/browse" onClick={() => setMenuOpen(false)}>Browse</Link>
                 </li>
               </>
+            ) : (
+              <li className={`py-2.5 cursor-pointer transition-colors duration-200 underline-offset-4 ${location.pathname === "/" ? "text-[#0066FF] underline" : "hover:text-[#0066FF] hover:underline"}`}>
+                <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
+              </li>
             )}
           </ul>
         </div>

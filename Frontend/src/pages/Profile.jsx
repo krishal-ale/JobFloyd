@@ -23,7 +23,7 @@ const Profile = () => {
     <div className="bg-gray-50 min-h-screen">
       <NavBar />
 
-      <div className="max-w-4xl mx-auto px-4 py-10">
+      <div className="max-w-6xl mx-auto px-4 py-10">
 
         {/* Profile Card */}
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 sm:p-8 mb-6">

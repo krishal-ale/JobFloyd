@@ -1,184 +1,260 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import pandas as pd
-import pdfplumber
-import requests
+import os
 import re
 import io
-import warnings
-warnings.filterwarnings("ignore")
+import traceback
+import requests
+import pdfplumber
+import pandas as pd
 
-# ML imports
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.linear_model import LinearRegression
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+
 from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
 app = Flask(__name__)
 CORS(app)
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATASET_PATH = os.path.join(BASE_DIR, "resume_dataset.csv")
 
-print("Training model...")
+tfidf_vectorizer = None
+best_model = None
+best_model_name = None
 
-df = pd.read_csv("resume_dataset.csv")
 
-columns = ["Experience", "Skills", "Achievements", "Education"]
-for col in columns:
-    df[col] = df[col].fillna("")
+def load_and_train_model():
+    global tfidf_vectorizer, best_model, best_model_name
 
-df = df[df["Score"].notna()].copy()
+    if not os.path.exists(DATASET_PATH):
+        raise FileNotFoundError(f"Dataset not found at: {DATASET_PATH}")
 
-df["combined_Columns"] = (
-    df["Experience"].astype(str) + " " +
-    df["Skills"].astype(str) + " " +
-    df["Achievements"].astype(str) + " " +
-    df["Education"].astype(str)
-)
+    df = pd.read_csv(DATASET_PATH)
 
-x = df["combined_Columns"]
-y = df["Score"]
+    columns = ["Experience", "Skills", "Achievements", "Education"]
+    for col in columns:
+        if col not in df.columns:
+            df[col] = ""
+        df[col] = df[col].fillna("")
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+    df = df[df["Score"].notna()].copy()
 
-tfidf = TfidfVectorizer(max_features=1000, stop_words="english")
-x_train_tfidf = tfidf.fit_transform(x_train)
-x_test_tfidf = tfidf.transform(x_test)
+    df["combined_Columns"] = (
+        df["Experience"].astype(str) + " " +
+        df["Skills"].astype(str) + " " +
+        df["Achievements"].astype(str) + " " +
+        df["Education"].astype(str)
+    )
 
-# Train all 3 models
-dt_model = DecisionTreeRegressor(max_depth=8, random_state=42)
-dt_model.fit(x_train_tfidf, y_train)
+    x = df["combined_Columns"]
+    y = df["Score"]
 
-rf_model = RandomForestRegressor(n_estimators=100, max_depth=8, random_state=42)
-rf_model.fit(x_train_tfidf, y_train)
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=0.2, random_state=42
+    )
 
-lr_model = LinearRegression()
-lr_model.fit(x_train_tfidf, y_train)
+    tfidf_vectorizer = TfidfVectorizer(max_features=1000, stop_words="english")
+    x_train_tfidf = tfidf_vectorizer.fit_transform(x_train)
+    x_test_tfidf = tfidf_vectorizer.transform(x_test)
 
-# Pick best model
-r2_dt = r2_score(y_test, dt_model.predict(x_test_tfidf))
-r2_rf = r2_score(y_test, rf_model.predict(x_test_tfidf))
-r2_lr = r2_score(y_test, lr_model.predict(x_test_tfidf))
+    dt_model = DecisionTreeRegressor(max_depth=8, random_state=42)
+    dt_model.fit(x_train_tfidf, y_train)
+    dt_score = r2_score(y_test, dt_model.predict(x_test_tfidf))
 
-best_r2 = max(r2_dt, r2_rf, r2_lr)
-if best_r2 == r2_rf:
-    best_model = rf_model
-    best_model_name = "Random Forest"
-elif best_r2 == r2_dt:
-    best_model = dt_model
-    best_model_name = "Decision Tree"
-else:
-    best_model = lr_model
-    best_model_name = "Linear Regression"
+    rf_model = RandomForestRegressor(n_estimators=100, max_depth=8, random_state=42)
+    rf_model.fit(x_train_tfidf, y_train)
+    rf_score = r2_score(y_test, rf_model.predict(x_test_tfidf))
 
-print(f"Best model: {best_model_name} with R2: {best_r2:.3f}")
+    lr_model = LinearRegression()
+    lr_model.fit(x_train_tfidf, y_train)
+    lr_score = r2_score(y_test, lr_model.predict(x_test_tfidf))
 
-# =====================
-# HELPER FUNCTIONS
-# =====================
+    scores = {
+        "Decision Tree": (dt_model, dt_score),
+        "Random Forest": (rf_model, rf_score),
+        "Linear Regression": (lr_model, lr_score),
+    }
 
-def clean_text(text):
+    best_model_name, (best_model, _) = max(scores.items(), key=lambda item: item[1][1])
+
+    print(f"Best model loaded: {best_model_name}")
+
+
+def clean_basic(text):
     text = text.lower()
-    text = re.sub(r'\s+', ' ', text)
-    text = re.sub(r'[•●▪–-]', ' ', text)
-    text = re.sub(r'[^a-z0-9,. ]', ' ', text)
+    text = re.sub(r"\s+", " ", text)
+    text = re.sub(r"[•●▪–-]", " ", text)
+    text = re.sub(r"[^a-z0-9,. ]", " ", text)
     return text.strip()
 
-def extract_text_from_pdf_url(url):
-    try:
-        response = requests.get(url, timeout=10)
-        pdf_file = io.BytesIO(response.content)
-        text = ""
-        with pdfplumber.open(pdf_file) as pdf:
-            for page in pdf.pages:
-                page_text = page.extract_text()
-                if page_text:
-                    text += page_text + " "
-        return text.strip()
-    except Exception as e:
-        print(f"Error reading PDF: {e}")
-        return ""
 
-# =====================
-# API ROUTE
-# =====================
+def remove_unwanted(text):
+    remove_words = [
+        "about me", "summary", "objective",
+        "hobbies", "interests",
+        "linkedin", "github", "facebook", "twitter",
+        "contact", "personal details"
+    ]
+    for word in remove_words:
+        text = text.replace(word, "")
+    return text
 
-@app.route("/rank-resumes", methods=["POST"])
-def rank_resumes():
-    try:
-        data = request.json
 
-        # expects: [{ name, email, resumeUrl }]
-        applicants = data.get("applicants", [])
+def extract_section(text, keywords, stopwords):
+    text_lower = text.lower()
+    for key in keywords:
+        if key in text_lower:
+            start = text_lower.index(key)
+            end = len(text)
+            for stop in stopwords:
+                stop_pos = text_lower.find(stop, start + 1)
+                if stop_pos != -1:
+                    end = min(end, stop_pos)
+            return text[start:end]
+    return ""
 
-        if not applicants:
-            return jsonify({"success": False, "message": "No applicants provided"}), 400
 
-        results = []
+def extract_all_sections(text):
+    experience = extract_section(
+        text,
+        ["experience", "work experience", "employment"],
+        ["education", "skills", "projects", "achievements"]
+    )
+    skills = extract_section(
+        text,
+        ["skills", "technical skills"],
+        ["experience", "education", "projects"]
+    )
+    education = extract_section(
+        text,
+        ["education", "academic"],
+        ["skills", "experience", "projects"]
+    )
+    achievements = extract_section(
+        text,
+        ["projects", "achievements", "certifications"],
+        ["education", "skills", "experience"]
+    )
 
-        for applicant in applicants:
-            name = applicant.get("name", "Unknown")
-            email = applicant.get("email", "")
-            resume_url = applicant.get("resumeUrl", "")
+    combined = f"{experience} {skills} {education} {achievements}".strip()
+    return combined if combined else text
 
-            if not resume_url:
-                results.append({
-                    "name": name,
-                    "email": email,
-                    "score": 0,
-                    "error": "No resume"
-                })
-                continue
 
-            # Extract and clean text
-            raw_text = extract_text_from_pdf_url(resume_url)
-            cleaned = clean_text(raw_text)
+def extract_text_from_pdf_url(pdf_url):
+    response = requests.get(pdf_url, timeout=30)
+    response.raise_for_status()
 
-            if not cleaned:
-                results.append({
-                    "name": name,
-                    "email": email,
-                    "score": 0,
-                    "error": "Could not read resume"
-                })
-                continue
+    pdf_file = io.BytesIO(response.content)
+    text = ""
 
-            # Predict score
-            tfidf_vec = tfidf.transform([cleaned])
-            score = best_model.predict(tfidf_vec)[0]
+    with pdfplumber.open(pdf_file) as pdf:
+        for page in pdf.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + " "
 
-            results.append({
-                "name": name,
-                "email": email,
-                "score": round(float(score), 2),
-                "error": None
-            })
-
-        # Sort by score descending
-        results.sort(key=lambda x: x["score"], reverse=True)
-
-        # Add rank
-        for i, r in enumerate(results):
-            r["rank"] = i + 1
-
-        return jsonify({
-            "success": True,
-            "model_used": best_model_name,
-            "ranked": results
-        })
-
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"success": False, "message": str(e)}), 500
+    return text.strip()
 
 
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"success": True, "message": "AI server running", "model": best_model_name})
+    return jsonify({
+        "success": True,
+        "message": "AI service is running",
+        "best_model": best_model_name
+    })
+
+
+@app.route("/rank-resumes", methods=["POST"])
+def rank_resumes():
+    try:
+        data = request.get_json()
+        resumes = data.get("resumes", [])
+
+        if not resumes:
+            return jsonify({
+                "success": False,
+                "message": "No resumes provided"
+            }), 400
+
+        processed_results = []
+
+        for item in resumes:
+            name = item.get("name", "Unknown Candidate")
+            resume_url = item.get("resumeUrl", "")
+            applicant_id = item.get("applicantId")
+            application_id = item.get("applicationId")
+            resume_name = item.get("resumeName", "Resume.pdf")
+
+            if not resume_url:
+                processed_results.append({
+                    "applicationId": application_id,
+                    "applicantId": applicant_id,
+                    "name": name,
+                    "resumeUrl": resume_url,
+                    "resumeName": resume_name,
+                    "score": 0,
+                    "error": "Resume URL not found"
+                })
+                continue
+
+            try:
+                raw_text = extract_text_from_pdf_url(resume_url)
+                cleaned_text = clean_basic(raw_text)
+                filtered_text = remove_unwanted(cleaned_text)
+                final_text = extract_all_sections(filtered_text)
+
+                vector = tfidf_vectorizer.transform([final_text])
+                predicted_score = float(best_model.predict(vector)[0])
+
+                processed_results.append({
+                    "applicationId": application_id,
+                    "applicantId": applicant_id,
+                    "name": name,
+                    "resumeUrl": resume_url,
+                    "resumeName": resume_name,
+                    "score": round(predicted_score, 2),
+                    "error": None
+                })
+
+            except Exception as e:
+                processed_results.append({
+                    "applicationId": application_id,
+                    "applicantId": applicant_id,
+                    "name": name,
+                    "resumeUrl": resume_url,
+                    "resumeName": resume_name,
+                    "score": 0,
+                    "error": str(e)
+                })
+
+        processed_results.sort(key=lambda x: x["score"], reverse=True)
+
+        ranked_results = []
+        for index, item in enumerate(processed_results, start=1):
+            item["rank"] = index
+            ranked_results.append(item)
+
+        return jsonify({
+            "success": True,
+            "message": "Resume ranking completed",
+            "modelUsed": best_model_name,
+            "results": ranked_results
+        })
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "message": "AI ranking failed",
+            "error": str(e)
+        }), 500
 
 
 if __name__ == "__main__":
-    app.run(port=5001, debug=True)
-
-
+    load_and_train_model()
+    app.run(host="0.0.0.0", port=5001, debug=True)

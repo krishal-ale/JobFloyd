@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,10 @@ import { USER_API_END_POINT } from "@/utils/constant";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { setLoading } from "@/redux/authSlice";import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setLoading } from "@/redux/authSlice";
 import { Loader2 } from "lucide-react";
-
+import { setUser } from "@/redux/authSlice";
 
 const SignUp = () => {
   const [input, setInput] = useState({
@@ -23,9 +23,8 @@ const SignUp = () => {
     file: null,
   });
 
-  const loading = useSelector((state) => state.authSlice.loading);
+  const { loading, user } = useSelector((state) => state.authSlice);
   const dispatch = useDispatch();
-
   const navigate = useNavigate();
 
   const onChangeHandler = (e) => {
@@ -36,7 +35,7 @@ const SignUp = () => {
     setInput({ ...input, file: e.target.files[0] });
   };
 
-  const onSubmitHandler = async (e)=>{
+  const onSubmitHandler = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append("fullName", input.fullName);
@@ -44,39 +43,41 @@ const SignUp = () => {
     formData.append("phoneNumber", input.phoneNumber);
     formData.append("password", input.password);
     formData.append("role", input.role);
-    if(input.file){
+    if (input.file) {
       formData.append("file", input.file);
     }
 
-    try{
+    try {
       dispatch(setLoading(true));
-       const res = await axios.post(`${USER_API_END_POINT}/register`, formData, {
-        
+      const res = await axios.post(`${USER_API_END_POINT}/register`, formData, {
         withCredentials: true,
-       });
+      });
 
-      if(res.data.success){
+      if (res.data.success) {
         navigate("/login");
         toast.success(res.data.message);
-        
-      }else{
+      } else {
         toast.error(res.data.message);
       }
-    } catch(error){
+    } catch (error) {
       console.error("Error during sign up:", error);
       toast.error(error.response?.data?.message || "Sign up failed. Please try again.");
-    } finally{
+    } finally {
       dispatch(setLoading(false));
     }
-  }
+  };
 
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   return (
     <div className="h-screen flex flex-col">
       <NavBar />
       <div className="flex-1 bg-slate-50 flex items-center justify-center px-4 sm:px-6 overflow-hidden">
         <form className="w-full max-w-md bg-white border border-gray-200 shadow-md rounded-xl p-5 sm:p-8 hover:border-[#0066FF] transition-colors focus-within:border-[#0066FF]" onSubmit={onSubmitHandler}>
-
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900 text-center">Create Account</h1>
             <p className="text-sm text-gray-400 mt-1 text-center">
@@ -96,7 +97,7 @@ const SignUp = () => {
 
           <div className="mb-4">
             <Label className="text-sm font-medium text-gray-700 mb-1.5 block">Phone Number</Label>
-            <Input type="text" placeholder="9816375736" className="w-full" name="phoneNumber" value={input.phone} onChange={onChangeHandler} />
+            <Input type="text" placeholder="9816375736" className="w-full" name="phoneNumber" value={input.phoneNumber} onChange={onChangeHandler} />
           </div>
 
           <div className="mb-5">
@@ -109,7 +110,6 @@ const SignUp = () => {
               <p className="text-sm font-medium text-gray-700 mb-2">I am a</p>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  
                   <input
                     type="radio"
                     name="role"
@@ -138,26 +138,29 @@ const SignUp = () => {
 
             <div>
               <p className="text-sm font-medium text-gray-700 mb-2">Profile Picture</p>
-              
               <Input type="file" accept="image/*" onChange={onFileChangeHandler} className="cursor-pointer text-sm text-gray-500 w-36" />
             </div>
           </div>
 
-          {loading ? (
-            <Button className="w-full bg-blue-500 hover:bg-[#0066FF] hover:text-black text-white font-medium py-2 cursor-pointer">
-              <Loader2 className="mr-2 h-4 animate-spin" /> Loading...
-            </Button>
-          ) : (
-            <Button type="submit" className="w-full bg-blue-500 hover:bg-[#0066FF] hover:text-black text-white font-medium py-2 cursor-pointer">
-              Sign Up
-            </Button>
-          )}
+          <Button 
+            type="submit" 
+            disabled={loading}
+            className="w-full bg-[#0066FF] hover:bg-blue-600 text-white font-medium py-2"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing up...
+              </>
+            ) : (
+              'Sign Up'
+            )}
+          </Button>
 
           <p className="text-center text-sm text-gray-500 mt-4">
             Already have an account?{" "}
             <Link to="/login" className="text-[#0066FF] font-medium hover:underline">Login</Link>
           </p>
-
         </form>
       </div>
     </div>
