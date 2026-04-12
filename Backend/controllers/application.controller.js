@@ -1,5 +1,7 @@
 import Application from "../models/application.model.js";
 import Job from "../models/job.model.js";
+import User from "../models/user.model.js";
+import sendEmail from "../utils/sendEmail.js";
 
 export const applyJob = async (req, res) => {
   try {
@@ -25,7 +27,7 @@ export const applyJob = async (req, res) => {
       });
     }
 
-    const job = await Job.findById(jobId);
+    const job = await Job.findById(jobId).populate("company");
 
     if (!job) {
       return res.status(404).json({
@@ -42,6 +44,33 @@ export const applyJob = async (req, res) => {
     job.applications.push(newApplication._id);
     await job.save();
 
+    const applicant = await User.findById(userId).select("fullName email");
+    const employer = await User.findById(job.created_by).select("fullName email");
+
+    if (employer?.email && applicant) {
+      const html = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+          <h2>New Job Application</h2>
+          <p>Hello ${employer.fullName || "Employer"},</p>
+          <p><strong>${applicant.fullName}</strong> has applied for your job <strong>${job.title}</strong>.</p>
+          <p>Applicant Email: ${applicant.email}</p>
+          <p>Company: ${job.company?.name || "Your Company"}</p>
+          <p>
+            Open JobFloyd:
+            <a href="${process.env.FRONTEND_URL || "http://localhost:5173"}/login">
+              JobFloyd
+            </a>
+          </p>
+        </div>
+      `;
+
+      await sendEmail({
+        to: employer.email,
+        subject: `New application for ${job.title}`,
+        html,
+      });
+    }
+
     return res.status(201).json({
       message: "Application submitted successfully",
       success: true,
@@ -51,6 +80,7 @@ export const applyJob = async (req, res) => {
     return res.status(500).json({
       message: "Something went wrong",
       success: false,
+      error: error.message,
     });
   }
 };
@@ -127,11 +157,23 @@ export const updateApplicationStatus = async (req, res) => {
       });
     }
 
-    const application = await Application.findByIdAndUpdate(
-      applicationId,
-      { status },
-      { new: true }
-    );
+    const normalizedStatus = status.toLowerCase();
+
+    if (!["pending", "accepted", "rejected"].includes(normalizedStatus)) {
+      return res.status(400).json({
+        message: "Invalid status",
+        success: false,
+      });
+    }
+
+    const application = await Application.findById(applicationId)
+      .populate("applicant")
+      .populate({
+        path: "job",
+        populate: {
+          path: "company",
+        },
+      });
 
     if (!application) {
       return res.status(404).json({
@@ -140,8 +182,37 @@ export const updateApplicationStatus = async (req, res) => {
       });
     }
 
-    application.status = status.toLowerCase();
+    application.status = normalizedStatus;
     await application.save();
+
+    const applicant = application.applicant;
+    const job = application.job;
+    const companyName = job?.company?.name || "the company";
+
+    if (applicant?.email) {
+      const statusText =
+        normalizedStatus === "accepted" ? "accepted" : normalizedStatus === "rejected" ? "rejected" : "updated";
+
+      const html = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+          <h2>Application Status Update</h2>
+          <p>Hello ${applicant.fullName || "Applicant"},</p>
+          <p>Your application for <strong>${job?.title || "this job"}</strong> at <strong>${companyName}</strong> has been <strong>${statusText}</strong>.</p>
+          <p>
+            Open JobFloyd:
+            <a href="${process.env.FRONTEND_URL || "http://localhost:5173"}/login">
+              JobFloyd
+            </a>
+          </p>
+        </div>
+      `;
+
+      await sendEmail({
+        to: applicant.email,
+        subject: `Your application was ${statusText}`,
+        html,
+      });
+    }
 
     return res.status(200).json({
       message: "Application status updated successfully",
@@ -152,6 +223,7 @@ export const updateApplicationStatus = async (req, res) => {
     return res.status(500).json({
       message: "Something went wrong",
       success: false,
+      error: error.message,
     });
   }
 };

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema(
+const emailVerificationSchema = new mongoose.Schema(
   {
     fullName: {
       type: String,
@@ -10,9 +10,9 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
       trim: true,
+      index: true,
     },
     phoneNumber: {
       type: Number,
@@ -27,25 +27,25 @@ const userSchema = new mongoose.Schema(
       enum: ["jobseeker", "employer"],
       required: true,
     },
-    isEmailVerified: {
-      type: Boolean,
-      default: true,
+    otp: {
+      type: String,
+      required: true,
     },
-    profile: {
-      bio: { type: String },
-      skills: [{ type: String }],
-      resume: { type: String },
-      resumeName: { type: String },
-      company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
-      profilePicture: {
-        type: String,
-        default: "",
-      },
+    otpExpiresAt: {
+      type: Date,
+      required: true,
+    },
+    profilePicture: {
+      type: String,
+      default: "",
     },
   },
   { timestamps: true }
 );
 
-const User = mongoose.model("User", userSchema);
+const EmailVerification = mongoose.model(
+  "EmailVerification",
+  emailVerificationSchema
+);
 
-export default User;
+export default EmailVerification;
