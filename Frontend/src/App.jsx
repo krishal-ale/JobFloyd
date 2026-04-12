@@ -20,6 +20,9 @@ import axios from 'axios'
 import { USER_API_END_POINT } from './utils/constant'
 import UpdateJob from './admin/components/UpdateJob'
 import Resume_Ranking from './admin/pages/Resume_Ranking'
+import MyResumes from './pages/MyResumes'
+import ResumeBuilder from './pages/ResumeBuilder'
+
 
 const App = () => {
   const dispatch = useDispatch();
@@ -65,6 +68,8 @@ const App = () => {
         <Route path="/admin/jobs/:id" element={<ProtectedRoute><UpdateJob/></ProtectedRoute>} />
         <Route path="/admin/jobs/:id/applicants" element={<ProtectedRoute><Applicants/></ProtectedRoute>} />
         <Route path="/admin/jobs/:id/resume-ranking" element={<Resume_Ranking />} />
+        <Route path="/resume-builder" element={<MyResumes />} />
+<Route path="/resume-builder/:resumeId" element={<ResumeBuilder />} />
       </Routes>
     </div>
   )
