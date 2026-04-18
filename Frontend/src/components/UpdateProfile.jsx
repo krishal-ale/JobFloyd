@@ -8,7 +8,7 @@ import { Button } from "./ui/button";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
-import axios from "axios";
+import axios from "@/utils/axiosInstance";
 import { toast } from "react-toastify";
 import { USER_API_END_POINT } from "@/utils/constant";
 import { setUser } from "@/redux/authSlice";

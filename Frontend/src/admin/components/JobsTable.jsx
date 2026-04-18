@@ -95,12 +95,12 @@ const JobsTable = () => {
           {job.title || "N/A"}
         </TableCell>
 
-        {/* ✅ Date */}
+   
         <TableCell className="text-sm text-gray-400">
           {job.createdAt?.split("T")[0]}
         </TableCell>
 
-        {/* ✅ Actions */}
+   
         <TableCell>
           <Popover>
             <PopoverTrigger className="p-2 rounded-lg hover:bg-gray-100 transition-colors">

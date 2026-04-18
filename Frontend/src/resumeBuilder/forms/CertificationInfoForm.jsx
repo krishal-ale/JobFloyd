@@ -9,26 +9,26 @@ export const CertificationInfoForm = ({
   removeArrayItem,
 }) => {
   return (
-    <div className="p-8 bg-gradient-to-br from-white to-blue-50">
-      <h2 className="text-2xl font-black text-slate-900 mb-8">
+    <div className="p-4 sm:p-5 bg-gradient-to-br from-white to-blue-50 rounded-2xl">
+      <h2 className="text-xl sm:text-2xl font-black text-slate-900 mb-5">
         Certifications
       </h2>
 
-      <div className="space-y-6 mb-6">
+      <div className="space-y-4 mb-4">
         {certifications.map((cert, index) => (
           <div
             key={index}
-            className="relative bg-white border border-blue-100 p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all"
+            className="relative bg-white border border-blue-100 p-4 sm:p-5 rounded-2xl shadow-sm hover:shadow-md transition-all"
           >
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-slate-800">
+            <div className="flex items-center justify-between mb-4 gap-3">
+              <h3 className="text-base sm:text-lg font-bold text-slate-800">
                 Certification {index + 1}
               </h3>
 
               {certifications.length > 1 && (
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 font-semibold transition"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 font-semibold transition text-sm"
                   onClick={() => removeArrayItem(index)}
                 >
                   <Trash2 size={16} />
@@ -37,7 +37,7 @@ export const CertificationInfoForm = ({
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Certificate Title"
                 placeholder="Full Stack Web Developer"
@@ -77,7 +77,7 @@ export const CertificationInfoForm = ({
               year: "",
             })
           }
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#0066FF] text-white hover:bg-blue-700 font-semibold transition shadow"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0066FF] text-white hover:bg-blue-700 font-semibold transition shadow text-sm"
         >
           <Plus size={16} />
           Add Certification

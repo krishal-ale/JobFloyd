@@ -145,7 +145,7 @@ def extract_all_sections(text):
 
 
 def extract_text_from_pdf_url(pdf_url):
-    response = requests.get(pdf_url, timeout=30)
+    response = requests.get(pdf_url, timeout=10)
     response.raise_for_status()
 
     pdf_file = io.BytesIO(response.content)

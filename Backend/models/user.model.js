@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
     phoneNumber: {
       type: Number,
       required: true,
+      unique: true,
     },
     password: {
       type: String,
@@ -31,6 +32,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    savedJobs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Job",
+      },
+    ],
+
     profile: {
       bio: { type: String },
       skills: [{ type: String }],

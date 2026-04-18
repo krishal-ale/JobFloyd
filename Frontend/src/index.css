@@ -127,3 +127,42 @@
     @apply font-sans;
     }
 }
+
+.pdf-export-safe,
+.pdf-export-safe * {
+  --background: #ffffff !important;
+  --foreground: #111827 !important;
+  --card: #ffffff !important;
+  --card-foreground: #111827 !important;
+  --popover: #ffffff !important;
+  --popover-foreground: #111827 !important;
+  --primary: #111827 !important;
+  --primary-foreground: #ffffff !important;
+  --secondary: #f3f4f6 !important;
+  --secondary-foreground: #111827 !important;
+  --muted: #f3f4f6 !important;
+  --muted-foreground: #6b7280 !important;
+  --accent: #f3f4f6 !important;
+  --accent-foreground: #111827 !important;
+  --destructive: #dc2626 !important;
+  --border: #d1d5db !important;
+  --input: #e5e7eb !important;
+  --ring: #93c5fd !important;
+  --sidebar: #ffffff !important;
+  --sidebar-foreground: #111827 !important;
+  --sidebar-primary: #111827 !important;
+  --sidebar-primary-foreground: #ffffff !important;
+  --sidebar-accent: #f3f4f6 !important;
+  --sidebar-accent-foreground: #111827 !important;
+  --sidebar-border: #d1d5db !important;
+  --sidebar-ring: #93c5fd !important;
+}
+
+.pdf-export-safe {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+.pdf-export-safe * {
+  filter: none !important;
+}

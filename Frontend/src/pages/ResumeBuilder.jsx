@@ -36,14 +36,14 @@ const useResizeObserver = () => {
   const [size, setSize] = useState({ width: 0, height: 0 });
 
   const ref = useCallback((node) => {
-    if (node) {
-      const resizeObserver = new ResizeObserver((entries) => {
-        const { width, height } = entries[0].contentRect;
-        setSize({ width, height });
-      });
+    if (!node) return;
 
-      resizeObserver.observe(node);
-    }
+    const resizeObserver = new ResizeObserver((entries) => {
+      const { width, height } = entries[0].contentRect;
+      setSize({ width, height });
+    });
+
+    resizeObserver.observe(node);
   }, []);
 
   return { ...size, ref };
@@ -143,10 +143,6 @@ const ResumeBuilder = () => {
     interests: [""],
   });
 
-  const currentStepProgress = Math.round(
-    (pages.indexOf(currentPage) / (pages.length - 1)) * 100
-  );
-
   const calculateCompletion = () => {
     let completedFields = 0;
     let totalFields = 0;
@@ -183,12 +179,12 @@ const ResumeBuilder = () => {
     });
 
     resumeData.projects.forEach((project) => {
-  totalFields += 4;
-  if (project.title?.trim()) completedFields++;
-  if (project.description?.trim()) completedFields++;
-  if (project.github?.trim()) completedFields++;
-  if (project.liveDemo?.trim()) completedFields++;
-});
+      totalFields += 4;
+      if (project.title?.trim()) completedFields++;
+      if (project.description?.trim()) completedFields++;
+      if (project.github?.trim()) completedFields++;
+      if (project.liveDemo?.trim()) completedFields++;
+    });
 
     resumeData.certifications.forEach((cert) => {
       totalFields += 3;
@@ -246,16 +242,16 @@ const ResumeBuilder = () => {
         });
         break;
 
-        case "projects":
-  resumeData.projects.forEach(({ title, description }, index) => {
-    if (!title?.trim()) {
-      errors.push(`Project title is required in project ${index + 1}`);
-    }
-    if (!description?.trim()) {
-      errors.push(`Project description is required in project ${index + 1}`);
-    }
-  });
-  break;
+      case "projects":
+        resumeData.projects.forEach(({ title, description }, index) => {
+          if (!title?.trim()) {
+            errors.push(`Project title is required in project ${index + 1}`);
+          }
+          if (!description?.trim()) {
+            errors.push(`Project description is required in project ${index + 1}`);
+          }
+        });
+        break;
 
       default:
         break;
@@ -419,56 +415,160 @@ const ResumeBuilder = () => {
       setIsLoading(false);
     }
   };
+  
 
   const downloadPDF = async () => {
-    const element = resumeDownloadRef.current;
-    if (!element) {
-      toast.error("Failed to generate PDF");
-      return;
-    }
+  const element = resumeDownloadRef.current;
+  if (!element) {
+    toast.error("Failed to generate PDF");
+    return;
+  }
 
-    try {
-      setIsDownloading(true);
-      setDownloadSuccess(false);
+  try {
+    setIsDownloading(true);
+    setDownloadSuccess(false);
 
-      await html2pdf()
-        .set({
-          margin: 0,
-          filename: `${(resumeData.title || "resume").replace(
-            /[^a-z0-9]/gi,
-            "_"
-          )}.pdf`,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: "#ffffff",
-            scrollX: 0,
-            scrollY: 0,
-            logging: false,
-          },
-          jsPDF: {
-            unit: "mm",
-            format: "a4",
-            orientation: "portrait",
-          },
-          pagebreak: {
-            mode: ["css", "legacy"],
-          },
-        })
-        .from(element)
-        .save();
+    // 1. Override oklch CSS variables at :root level temporarily
+    const root = document.documentElement;
+    const safeVars = {
+      "--background": "#ffffff",
+      "--foreground": "#111827",
+      "--card": "#ffffff",
+      "--card-foreground": "#111827",
+      "--popover": "#ffffff",
+      "--popover-foreground": "#111827",
+      "--primary": "#111827",
+      "--primary-foreground": "#ffffff",
+      "--secondary": "#f3f4f6",
+      "--secondary-foreground": "#111827",
+      "--muted": "#f3f4f6",
+      "--muted-foreground": "#6b7280",
+      "--accent": "#f3f4f6",
+      "--accent-foreground": "#111827",
+      "--destructive": "#dc2626",
+      "--border": "#d1d5db",
+      "--input": "#e5e7eb",
+      "--ring": "#93c5fd",
+      "--sidebar": "#ffffff",
+      "--sidebar-foreground": "#111827",
+      "--sidebar-primary": "#111827",
+      "--sidebar-primary-foreground": "#ffffff",
+      "--sidebar-accent": "#f3f4f6",
+      "--sidebar-accent-foreground": "#111827",
+      "--sidebar-border": "#d1d5db",
+      "--sidebar-ring": "#93c5fd",
+    };
 
-      toast.success("PDF downloaded successfully");
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 3000);
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to generate PDF");
-    } finally {
-      setIsDownloading(false);
-    }
-  };
+    const originalVars = {};
+    Object.entries(safeVars).forEach(([key, value]) => {
+      originalVars[key] = root.style.getPropertyValue(key);
+      root.style.setProperty(key, value);
+    });
+
+    const allElements = [element, ...element.querySelectorAll("*")];
+    const savedStyles = new Map();
+
+    allElements.forEach((el) => {
+      const computed = window.getComputedStyle(el);
+      const saved = {};
+
+      const props = [
+        "backgroundColor",
+        "color",
+        "borderTopColor",
+        "borderBottomColor",
+        "borderLeftColor",
+        "borderRightColor",
+        "outlineColor",
+      ];
+
+      props.forEach((prop) => {
+        const val = computed[prop];
+        if (val && val.includes("oklch")) {
+          saved[prop] = el.style[prop];
+          el.style[prop] =
+            prop === "color" || prop.includes("border") || prop === "outlineColor"
+              ? "#111827"
+              : "#ffffff";
+        }
+      });
+
+      if (Object.keys(saved).length > 0) {
+        savedStyles.set(el, saved);
+      }
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    await html2pdf()
+  .set({
+    margin: 0,
+    filename: `${(resumeData.title || "resume").replace(/[^a-z0-9]/gi, "_")}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      scrollX: 0,
+      scrollY: 0,
+      logging: false,
+      windowWidth: 794,
+      onclone: (clonedDoc) => {
+        const clonedRoot = clonedDoc.documentElement;
+        Object.entries(safeVars).forEach(([key, value]) => {
+          clonedRoot.style.setProperty(key, value);
+        });
+        clonedDoc.querySelectorAll("*").forEach((el) => {
+          const style = el.getAttribute("style") || "";
+          if (style.includes("oklch")) {
+            el.setAttribute("style", style.replace(/oklch\([^)]+\)/g, "#111827"));
+          }
+        });
+        const wrapper = clonedDoc.querySelector(".a4-wrapper");
+        if (wrapper) {
+          wrapper.style.overflow = "visible";
+          wrapper.style.height = "auto";
+        }
+      },
+    },
+    jsPDF: {
+      unit: "px",
+      format: [794, 1123],
+      orientation: "portrait",
+      hotfixes: ["px_scaling"],
+    },
+    pagebreak: {
+      mode: [],
+    },
+  })
+  .from(element)
+  .save();
+    
+    Object.entries(originalVars).forEach(([key, value]) => {
+      if (value) {
+        root.style.setProperty(key, value);
+      } else {
+        root.style.removeProperty(key);
+      }
+    });
+
+    
+    savedStyles.forEach((saved, el) => {
+      Object.entries(saved).forEach(([prop, val]) => {
+        el.style[prop] = val;
+      });
+    });
+
+    toast.success("PDF downloaded successfully");
+    setDownloadSuccess(true);
+    setTimeout(() => setDownloadSuccess(false), 3000);
+  } catch (error) {
+    console.log(error);
+    toast.error("Failed to generate PDF");
+  } finally {
+    setIsDownloading(false);
+  }
+};
 
   const updateTheme = (theme) => {
     setResumeData((prev) => ({
@@ -586,9 +686,9 @@ const ResumeBuilder = () => {
     <div className="min-h-screen bg-gray-50">
       <NavBar />
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 sm:p-6 mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-3 sm:p-4 mb-3 sm:mb-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <TitleInput
               title={resumeData.title}
               setTitle={(value) =>
@@ -599,54 +699,54 @@ const ResumeBuilder = () => {
               }
             />
 
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <button
-                className="px-4 py-2 rounded-xl border border-gray-200 hover:border-[#0066FF] hover:text-[#0066FF] transition flex items-center gap-2"
+                className="px-3 sm:px-4 py-2 rounded-xl border border-gray-200 hover:border-[#0066FF] hover:text-[#0066FF] transition flex items-center gap-2 text-sm"
                 onClick={() => setOpenThemeSelector(true)}
               >
                 <Palette size={16} />
-                <span className="text-sm">Theme</span>
+                <span>Theme</span>
               </button>
 
               <button
-                className="px-4 py-2 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition flex items-center gap-2"
+                className="px-3 sm:px-4 py-2 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition flex items-center gap-2 text-sm"
                 onClick={handleDeleteResume}
                 disabled={isLoading}
               >
                 <Trash2 size={16} />
-                <span className="text-sm">Delete</span>
+                <span>Delete</span>
               </button>
 
               <button
-                className="px-4 py-2 rounded-xl bg-[#0066FF] hover:bg-blue-700 text-white transition flex items-center gap-2"
+                className="px-3 sm:px-4 py-2 rounded-xl bg-[#0066FF] hover:bg-blue-700 text-white transition flex items-center gap-2 text-sm"
                 onClick={() => setOpenPreviewModal(true)}
               >
                 <Download size={16} />
-                <span className="text-sm">Preview</span>
+                <span>Preview</span>
               </button>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
           <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-            <div className="p-4 sm:p-6 border-b">
+            <div className="p-3 sm:p-4 border-b">
               <StepProgress progress={completionPercentage} />
             </div>
 
-            <div className="p-4 sm:p-6">
+            <div className="p-3 sm:p-4 max-h-[70vh] xl:max-h-[76vh] overflow-y-auto">
               {renderForm()}
 
               {errorMsg && (
-                <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm flex items-center gap-2">
-                  <AlertCircle size={16} />
-                  {errorMsg}
+                <div className="mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm flex items-start gap-2">
+                  <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                  <span>{errorMsg}</span>
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center justify-end gap-3 mt-6">
+              <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3 mt-5 sticky bottom-0 bg-white pt-3">
                 <button
-                  className="px-4 py-2 rounded-xl border border-gray-200 hover:border-[#0066FF] hover:text-[#0066FF] transition flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 rounded-xl border border-gray-200 hover:border-[#0066FF] hover:text-[#0066FF] transition flex items-center gap-2 text-sm"
                   onClick={goBack}
                   disabled={isLoading}
                 >
@@ -655,7 +755,7 @@ const ResumeBuilder = () => {
                 </button>
 
                 <button
-                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white transition flex items-center gap-2 text-sm"
                   onClick={saveResumeDetails}
                   disabled={isLoading}
                 >
@@ -668,7 +768,7 @@ const ResumeBuilder = () => {
                 </button>
 
                 <button
-                  className="px-4 py-2 rounded-xl bg-[#0066FF] hover:bg-blue-700 text-white transition flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 rounded-xl bg-[#0066FF] hover:bg-blue-700 text-white transition flex items-center gap-2 text-sm"
                   onClick={validateAndNext}
                   disabled={isLoading}
                 >
@@ -685,15 +785,18 @@ const ResumeBuilder = () => {
           </div>
 
           <div className="hidden xl:block">
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 sm:p-6 sticky top-24">
-              <div className="text-center mb-4">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 sticky top-20 overflow-hidden">
+              <div className="text-center mb-3">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-[#0066FF] text-sm font-medium">
                   <span className="w-2 h-2 rounded-full bg-[#0066FF] animate-pulse"></span>
                   Completion - {completionPercentage}%
                 </div>
               </div>
 
-              <div className="preview-container relative" ref={previewContainerRef}>
+              <div
+                className="preview-container relative overflow-hidden"
+                ref={previewContainerRef}
+              >
                 <RenderResume
                   key={`preview-${resumeData?.template?.theme}`}
                   templateId={resumeData?.template?.theme || "03"}
@@ -711,12 +814,14 @@ const ResumeBuilder = () => {
         onClose={() => setOpenThemeSelector(false)}
         title="Change Theme"
       >
-        <ThemeSelector
-          selectedTheme={resumeData?.template?.theme}
-          setSelectedTheme={updateTheme}
-          resumeData={resumeData}
-          onClose={() => setOpenThemeSelector(false)}
-        />
+        <div className="h-full overflow-y-auto">
+          <ThemeSelector
+            selectedTheme={resumeData?.template?.theme}
+            setSelectedTheme={updateTheme}
+            resumeData={resumeData}
+            onClose={() => setOpenThemeSelector(false)}
+          />
+        </div>
       </ResumeBuilderModal>
 
       <ResumeBuilderModal
@@ -742,24 +847,26 @@ const ResumeBuilder = () => {
         }
         onActionClick={downloadPDF}
       >
-        <div className="text-center mb-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-[#0066FF] text-sm font-medium">
-            <span className="w-2 h-2 rounded-full bg-[#0066FF] animate-pulse"></span>
-            Completion: {completionPercentage}%
+        <div className="h-full flex flex-col">
+          <div className="text-center mb-3 sm:mb-4">
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-blue-50 text-[#0066FF] text-xs sm:text-sm font-medium">
+              <span className="w-2 h-2 rounded-full bg-[#0066FF] animate-pulse"></span>
+              Completion: {completionPercentage}%
+            </div>
           </div>
-        </div>
 
-        <div className="overflow-auto bg-gray-100 p-4 rounded-xl">
-          <div
-            ref={resumeDownloadRef}
-            className="a4-wrapper mx-auto bg-white shadow-sm"
-          >
-            <RenderResume
-              key={`pdf-${resumeData?.template?.theme}`}
-              templateId={resumeData?.template?.theme || "03"}
-              resumeData={resumeData}
-              containerWidth={0}
-            />
+          <div className="flex-1 overflow-auto bg-gray-100 p-2 sm:p-4 rounded-xl">
+            <div
+  ref={resumeDownloadRef}
+  className="a4-wrapper pdf-export-safe mx-auto bg-white shadow-sm"
+>
+              <RenderResume
+                key={`pdf-${resumeData?.template?.theme}`}
+                templateId={resumeData?.template?.theme || "03"}
+                resumeData={resumeData}
+                containerWidth={0}
+              />
+            </div>
           </div>
         </div>
       </ResumeBuilderModal>

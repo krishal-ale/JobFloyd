@@ -1,4 +1,5 @@
-import axios from "axios";
+import axios from "@/utils/axiosInstance";
+
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setAllAppliedJobs } from "@/redux/jobSlice";

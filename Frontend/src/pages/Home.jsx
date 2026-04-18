@@ -7,36 +7,33 @@ import Footer from '@/components/shared/Footer'
 import useGetAllJobs from '@/hooks/useGetAllJobs'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import zeroToHero from '@/assets/zero_to_hero.png'
 
 const Home = () => {
   useGetAllJobs();
-  const { user, loading  } = useSelector((state) => state.authSlice);
+  const { user, loading } = useSelector((state) => state.authSlice);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!loading && user?.role === "employer") {
       navigate("/admin/company");
     }
-}, [user, loading]);
+  }, [user, loading]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   return (
-    <div>
+    <div className="min-h-screen flex flex-col overflow-x-hidden">
       <NavBar />
-      <Hero />
-      {user ? (
-        <>
-          <Category />
-          <LatestJobs />
-        </>
-      ) : (
-        <div className="flex justify-center items-center">
-          <img src={zeroToHero} alt="Zero to Hero" className=" w-full object-contain" />
-        </div>
-      )}
+      <main className="flex-1">
+        <Hero />
+        <Category />
+        <LatestJobs />
+      </main>
       <Footer />
     </div>
-  )
+  );
 }
 
 export default Home

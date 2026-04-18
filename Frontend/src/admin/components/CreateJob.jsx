@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useSelector } from "react-redux";
 import { JOB_API_END_POINT } from "@/utils/constant";
-import axios from "axios";
+import axios from "@/utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import useGetMyCompany from "@/hooks/useGetAllCompanies";
 
 const CreateJob = () => {
@@ -16,7 +17,6 @@ const CreateJob = () => {
   const { myCompany } = useSelector((store) => store.companySlice);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
   const [input, setInput] = useState({
     title: "",
     description: "",
@@ -74,6 +74,14 @@ const CreateJob = () => {
     <div className="bg-gray-50 min-h-screen">
       <NavBar />
       <div className="max-w-3xl mx-auto px-4 py-10">
+
+  
+  <div className="mb-4">
+    <Button variant="outline" onClick={() => navigate(-1)}>
+      <ArrowLeft className="w-4 h-4 mr-2" />
+      Back
+    </Button>
+  </div>
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
             Post a <span className="text-[#0066FF]">New Job</span>

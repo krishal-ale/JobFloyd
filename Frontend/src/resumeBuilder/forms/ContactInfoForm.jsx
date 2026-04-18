@@ -7,7 +7,7 @@ export const ContactInfoForm = ({ contactInfo, updateSection }) => {
     <div className={contactInfoStyles.container}>
       <h2 className={contactInfoStyles.heading}>Contact Information</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Input
           label="Email"
           value={contactInfo.email || ""}
@@ -22,3 +22,5 @@ export const ContactInfoForm = ({ contactInfo, updateSection }) => {
     </div>
   );
 };
+
+export default ContactInfoForm;

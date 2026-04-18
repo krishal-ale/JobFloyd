@@ -1,6 +1,6 @@
 import { JOB_API_END_POINT } from '@/utils/constant';
 import { useEffect } from 'react';
-import axios from 'axios';
+import axios from "@/utils/axiosInstance";
 import { useDispatch } from 'react-redux';
 import { setAllAdminJobs } from '@/redux/jobSlice';
 

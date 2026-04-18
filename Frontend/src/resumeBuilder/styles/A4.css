@@ -1,4 +1,3 @@
-
 @media print {
   @page {
     size: A4;
@@ -9,29 +8,20 @@
   body {
     margin: 0;
     padding: 0;
-      margin: 0;
-    padding: 0;
     height: 297mm;
     width: 210mm;
+    background: white;
   }
 }
 
-
- 
-
-
-
-
-
- .a4-wrapper {
-    width: 210mm;
-    min-height: 297mm;
-    background: white;
-    box-sizing: border-box;
-    overflow: hidden;
-    page-break-after: always;
-  }
-
+.a4-wrapper {
+  width: 210mm;
+  min-height: 297mm;
+  background: white;
+  box-sizing: border-box;
+  overflow: hidden;
+  page-break-after: always;
+}
 
 .a4-wrapper h1,
 .a4-wrapper h2,
@@ -43,13 +33,29 @@
   page-break-after: avoid;
 }
 
-
-.a4-wrapper .resume-section {
-  page-break-inside: avoid;
+.a4-wrapper .resume-section,
+.section-title,
+.resume-section {
   break-inside: avoid;
+  page-break-inside: avoid;
+  page-break-after: avoid;
 }
-  .section-title, .resume-section {
-    break-inside: avoid;
-    page-break-inside: avoid;
-    page-break-after: avoid;
+
+@media (max-width: 640px) {
+  .a4-wrapper {
+    width: 210mm;
+    transform: scale(0.44);
+    transform-origin: top left;
+    margin-bottom: -58%;
+    margin-left: 0;
   }
+}
+
+.pdf-export-safe {
+  background: #ffffff !important;
+}
+
+.pdf-export-safe * {
+  animation: none !important;
+  transition: none !important;
+}

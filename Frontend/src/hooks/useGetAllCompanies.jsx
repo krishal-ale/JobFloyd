@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import axios from 'axios';
+import axios from "@/utils/axiosInstance";
 import { useDispatch } from 'react-redux';
 import { setMyCompany } from '@/redux/companySlice';
 import { COMPANY_API_END_POINT } from '@/utils/constant';

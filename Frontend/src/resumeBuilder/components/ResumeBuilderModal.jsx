@@ -14,19 +14,22 @@ const ResumeBuilderModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-6xl h-[90vh] overflow-hidden relative flex flex-col">
-        <div className="flex items-center justify-between border-b px-6 py-4 pr-20">
-          <h3 className="font-bold text-lg text-gray-900 truncate">{title}</h3>
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-6xl h-[96vh] sm:h-[92vh] overflow-hidden relative flex flex-col">
+        <div className="flex items-center justify-between border-b px-4 sm:px-6 py-3 sm:py-4 gap-3 shrink-0">
+          <h3 className="font-bold text-base sm:text-lg text-gray-900 truncate">
+            {title}
+          </h3>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {showActionBtn && (
               <button
-                className="bg-[#0066FF] hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"
+                className="bg-[#0066FF] hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2"
                 onClick={onActionClick}
               >
                 {actionBtnIcon}
-                {actionBtnText}
+                <span className="hidden sm:inline">{actionBtnText}</span>
+                <span className="sm:hidden">Download</span>
               </button>
             )}
 
@@ -40,7 +43,9 @@ const ResumeBuilderModal = ({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">{children}</div>
+        <div className="flex-1 min-h-0 overflow-hidden p-3 sm:p-6">
+          {children}
+        </div>
       </div>
     </div>
   );

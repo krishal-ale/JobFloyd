@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useSelector } from "react-redux";
 import { JOB_API_END_POINT } from "@/utils/constant";
-import axios from "axios";
+import axios from "@/utils/axiosInstance";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";

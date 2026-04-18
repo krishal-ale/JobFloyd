@@ -17,13 +17,13 @@ export const AdditionalInfoForm = ({
     <div className={additionalInfoStyles.container}>
       <h2 className={additionalInfoStyles.heading}>Additional Information</h2>
 
-      <div className="mb-10">
+      <div className="mb-6">
         <h3 className={additionalInfoStyles.sectionHeading}>
           <div className={additionalInfoStyles.dotViolet}></div>
           Languages
         </h3>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {languages?.map((lang, index) => (
             <div key={index} className={additionalInfoStyles.languageItem}>
               <Input
@@ -48,16 +48,16 @@ export const AdditionalInfoForm = ({
           ))}
 
           <button
-  type="button"
-  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#0066FF] text-white hover:bg-blue-700 font-semibold transition shadow"
-  onClick={() => addArrayItem("languages", { name: "", progress: 0 })}
->
-  <Plus size={16} /> Add Language
-</button>
+            type="button"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0066FF] text-white hover:bg-blue-700 font-semibold transition shadow text-sm"
+            onClick={() => addArrayItem("languages", { name: "", progress: 0 })}
+          >
+            <Plus size={16} /> Add Language
+          </button>
         </div>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-4">
         <h3 className={additionalInfoStyles.sectionHeading}>
           <div className={additionalInfoStyles.dotOrange}></div>
           Interests
@@ -88,12 +88,12 @@ export const AdditionalInfoForm = ({
           ))}
 
           <button
-  type="button"
-  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#0066FF] text-white hover:bg-blue-700 font-semibold transition shadow"
-  onClick={() => addArrayItem("interests", "")}
->
-  <Plus size={16} /> Add Interest
-</button>
+            type="button"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0066FF] text-white hover:bg-blue-700 font-semibold transition shadow text-sm"
+            onClick={() => addArrayItem("interests", "")}
+          >
+            <Plus size={16} /> Add Interest
+          </button>
         </div>
       </div>
     </div>

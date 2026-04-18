@@ -32,7 +32,11 @@ const Profile = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div className="flex items-center gap-4">
               <Avatar className="h-20 w-20 ring-2 ring-blue-100">
-                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                {user?.profile?.profilePicture ? (
+                  <AvatarImage src={user?.profile?.profilePicture} alt={user?.fullName} />
+                ) : (
+                  <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                )}
               </Avatar>
               <div>
                 <h1 className="font-bold text-xl text-gray-900">{user?.fullName}</h1>

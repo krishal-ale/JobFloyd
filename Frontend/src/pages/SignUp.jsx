@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import NavBar from "@/components/shared/NavBar";
 import { USER_API_END_POINT } from "@/utils/constant";
-import axios from "axios";
+import axios from "@/utils/axiosInstance";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { setLoading } from "@/redux/authSlice";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle, XCircle } from "lucide-react";
 
 const SignUp = () => {
   const [step, setStep] = useState(1);
@@ -38,7 +38,6 @@ const SignUp = () => {
   const passwordChecks = {
     length: input.password.length >= 8,
     uppercase: /[A-Z]/.test(input.password),
-    lowercase: /[a-z]/.test(input.password),
     number: /\d/.test(input.password),
     special: /[@$!%*?&^#()[\]{}\-_=+~`|;:'",.<>/\\]/.test(input.password),
   };
@@ -119,14 +118,32 @@ const SignUp = () => {
     }
   }, [user, navigate]);
 
+  const renderRule = (isValid, text) => (
+    <div className="flex items-center gap-1.5 min-w-0">
+      {isValid ? (
+        <CheckCircle className="h-3.5 w-3.5 text-green-600 shrink-0" />
+      ) : (
+        <XCircle className="h-3.5 w-3.5 text-red-500 shrink-0" />
+      )}
+      <span
+        className={`text-xs leading-5 ${
+          isValid ? "text-green-600" : "text-red-500"
+        }`}
+      >
+        {text}
+      </span>
+    </div>
+  );
+
   return (
-    <div className="h-screen flex flex-col">
-      <NavBar />
-      <div className="flex-1 bg-slate-50 flex items-center justify-center px-4 sm:px-6 overflow-hidden">
-        <form
-          className="w-full max-w-md bg-white border border-gray-200 shadow-md rounded-xl p-5 sm:p-8 hover:border-[#0066FF] transition-colors focus-within:border-[#0066FF]"
-          onSubmit={step === 1 ? handleSendOtp : handleVerifyOtp}
-        >
+  <div className="h-screen flex flex-col overflow-hidden">
+    <NavBar />
+
+    <div className="flex-1 bg-slate-50 flex items-center justify-center px-4 sm:px-6 overflow-hidden">
+      <form
+        className="w-full max-w-md bg-white border border-gray-200 shadow-md rounded-xl p-5 sm:p-8 hover:border-[#0066FF] transition-colors focus-within:border-[#0066FF]"
+        onSubmit={step === 1 ? handleSendOtp : handleVerifyOtp}
+      >
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900 text-center">
               {step === 1 ? "Create Account" : "Verify Email"}
@@ -196,25 +213,14 @@ const SignUp = () => {
                 />
               </div>
 
-              <div className="mb-5 text-xs space-y-1">
-                <p className={passwordChecks.length ? "text-green-600" : "text-red-500"}>
-                  • At least 8 characters
-                </p>
-                <p className={passwordChecks.uppercase ? "text-green-600" : "text-red-500"}>
-                  • At least 1 uppercase letter
-                </p>
-                <p className={passwordChecks.lowercase ? "text-green-600" : "text-red-500"}>
-                  • At least 1 lowercase letter
-                </p>
-                <p className={passwordChecks.number ? "text-green-600" : "text-red-500"}>
-                  • At least 1 number
-                </p>
-                <p className={passwordChecks.special ? "text-green-600" : "text-red-500"}>
-                  • At least 1 special character
-                </p>
+              <div className="mb-6 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                {renderRule(passwordChecks.length, "8+ characters")}
+                {renderRule(passwordChecks.uppercase, "1 uppercase")}
+                {renderRule(passwordChecks.number, "1 number")}
+                {renderRule(passwordChecks.special, "1 special character")}
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5 mb-6">
                 <div>
                   <p className="text-sm font-medium text-gray-700 mb-2">I am a</p>
                   <div className="flex items-center gap-4">
@@ -228,10 +234,14 @@ const SignUp = () => {
                         onChange={onChangeHandler}
                         className="w-4 h-4 accent-[#0066FF] cursor-pointer"
                       />
-                      <Label htmlFor="jobseeker" className="text-sm text-gray-600 cursor-pointer">
+                      <Label
+                        htmlFor="jobseeker"
+                        className="text-sm text-gray-600 cursor-pointer"
+                      >
                         Job Seeker
                       </Label>
                     </div>
+
                     <div className="flex items-center gap-2">
                       <input
                         type="radio"
@@ -242,7 +252,10 @@ const SignUp = () => {
                         onChange={onChangeHandler}
                         className="w-4 h-4 accent-[#0066FF] cursor-pointer"
                       />
-                      <Label htmlFor="employer" className="text-sm text-gray-600 cursor-pointer">
+                      <Label
+                        htmlFor="employer"
+                        className="text-sm text-gray-600 cursor-pointer"
+                      >
                         Employer
                       </Label>
                     </div>

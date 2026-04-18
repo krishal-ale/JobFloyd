@@ -13,7 +13,7 @@ const RenderResume = ({ templateId, resumeData, containerWidth }) => {
         />
       );
 
-    case "02":
+    case "02": 
       return (
         <TemplateTwo
           resumeData={resumeData}

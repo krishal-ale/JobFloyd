@@ -20,7 +20,7 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
   } = resumeData;
 
   const resumeRef = useRef(null);
-  const [baseWidth, setBaseWidth] = useState(1100);
+  const [baseWidth, setBaseWidth] = useState(794);
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
@@ -28,7 +28,9 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
       const actualBaseWidth = resumeRef.current.offsetWidth;
       setBaseWidth(actualBaseWidth);
       if (containerWidth > 0) {
-        setScale(containerWidth / actualBaseWidth);
+        setScale(Math.min(containerWidth / actualBaseWidth, 1));
+      } else {
+        setScale(1);
       }
     }
   }, [containerWidth]);
@@ -61,12 +63,12 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
   return (
     <div
       ref={resumeRef}
-      className="bg-white font-sans a4-wrapper text-black max-w-screen-lg mx-auto"
+      className="bg-white font-sans a4-wrapper text-black mx-auto"
       style={{
         transform: containerWidth > 0 ? `scale(${scale})` : "none",
         transformOrigin: "top left",
-        width: containerWidth > 0 ? `${baseWidth}px` : "auto",
-        height: "auto",
+        width: `${baseWidth}px`,
+        minHeight: "1123px",
       }}
     >
       <header className="px-8 pt-8 pb-4 mb-2">
@@ -92,29 +94,29 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
               CONTACT
             </h2>
             <ul className="text-xs text-gray-700 space-y-2 pb-2">
-              <li className="flex items-start">
+              <li className="flex items-start gap-2">
                 <span className="font-semibold min-w-[65px]">Location:</span>
-                {contactInfo.location}
+                <span className="break-words">{contactInfo.location}</span>
               </li>
 
-              <li className="flex items-start">
+              <li className="flex items-start gap-2">
                 <span className="font-semibold min-w-[65px]">Phone:</span>
-                {contactInfo.phone}
+                <span>{contactInfo.phone}</span>
               </li>
 
-              <li className="flex items-start">
+              <li className="flex items-start gap-2">
                 <span className="font-semibold min-w-[65px]">Email:</span>
-                <span className="text-blue-600">{contactInfo.email}</span>
+                <span className="text-blue-600 break-all">{contactInfo.email}</span>
               </li>
 
               {contactInfo.linkedin && (
-                <li className="flex items-start">
+                <li className="flex items-start gap-2">
                   <span className="font-semibold min-w-[65px]">LinkedIn:</span>
                   <a
                     href={normalizeUrl(contactInfo.linkedin)}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-blue-600 hover:underline truncate pb-1"
+                    className="text-blue-600 hover:underline truncate"
                     title={contactInfo.linkedin}
                   >
                     linkedin.com/in/{contactInfo.linkedin.split("/").pop()}
@@ -123,13 +125,13 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
               )}
 
               {contactInfo.github && (
-                <li className="flex items-start">
+                <li className="flex items-start gap-2">
                   <span className="font-semibold min-w-[65px]">GitHub:</span>
                   <a
                     href={normalizeUrl(contactInfo.github)}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-blue-600 hover:underline pb-2 truncate"
+                    className="text-blue-600 hover:underline truncate"
                     title={contactInfo.github}
                   >
                     github.com/{contactInfo.github.split("/").pop()}
@@ -138,13 +140,13 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
               )}
 
               {contactInfo.website && (
-                <li className="flex items-start">
+                <li className="flex items-start gap-2">
                   <span className="font-semibold min-w-[65px]">Portfolio:</span>
                   <a
                     href={normalizeUrl(contactInfo.website)}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-blue-600 hover:underline pb-2 truncate"
+                    className="text-blue-600 hover:underline truncate"
                     title={contactInfo.website}
                   >
                     {contactInfo.website.replace(/(^\w+:|^)\/\//, "")}
@@ -155,29 +157,29 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
           </section>
 
           <section>
-            <h2 className="text-sm font-bold uppercase text-gray-800 mb-2 tracking-wider">
-              SKILLS
-            </h2>
-            {Object.entries(groupedSkills).map(
-              ([category, skillsList]) =>
-                skillsList.length > 0 && (
-                  <div key={category} className="mb-2">
-                    {category !== "Other Skills" && (
-                      <h3 className="text-xs font-semibold italic mb-1">
-                        {category}:
-                      </h3>
-                    )}
-                    <ul className="text-xs text-gray-700">
-                      {skillsList.map((skill, idx) => (
-                        <li key={idx} className="mb-1">
-                          {skill}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )
-            )}
-          </section>
+  <h2 className="text-sm font-bold uppercase text-gray-800 mb-2 tracking-wider">
+    SKILLS
+  </h2>
+  {Object.entries(groupedSkills).map(
+    ([category, skillsList]) =>
+      skillsList.length > 0 && (
+        <div key={category} className="mb-2 min-w-0">
+          {category !== "Other Skills" && (
+            <h3 className="text-xs font-semibold italic mb-1 break-words">
+              {category}:
+            </h3>
+          )}
+          <ul className="text-xs text-gray-700 space-y-1 pl-4 list-disc">
+            {skillsList.map((skill, idx) => (
+              <li key={idx} className="break-words leading-relaxed">
+                {skill}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+  )}
+</section>
 
           {education.length > 0 && (
             <section>
@@ -234,20 +236,20 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
           )}
 
           {interests.length > 0 && interests.some((i) => i?.trim()) && (
-  <section>
-    <h2 className="text-sm font-bold uppercase text-gray-800 mb-2 tracking-wider">
-      INTERESTS
-    </h2>
+            <section>
+              <h2 className="text-sm font-bold uppercase text-gray-800 mb-2 tracking-wider">
+                INTERESTS
+              </h2>
 
-    <ul className="text-xs text-gray-700 space-y-1">
-      {interests
-        .filter((i) => i?.trim())
-        .map((interest, idx) => (
-          <li key={idx}>• {interest}</li>
-        ))}
-    </ul>
-  </section>
-)}
+              <ul className="text-xs text-gray-700 space-y-1">
+                {interests
+                  .filter((i) => i?.trim())
+                  .map((interest, idx) => (
+                    <li key={idx}>• {interest}</li>
+                  ))}
+              </ul>
+            </section>
+          )}
         </aside>
 
         <main className="col-span-7 space-y-5 pl-4">
@@ -259,8 +261,8 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
               <div className="space-y-5">
                 {workExperience.map((exp, idx) => (
                   <div key={idx} className="text-xs">
-                    <div className="flex justify-between items-start mb-1">
-                      <div>
+                    <div className="flex justify-between items-start gap-3 mb-1">
+                      <div className="min-w-0">
                         <h3 className="font-bold pb-2">{exp.role}</h3>
                         <p className="italic">
                           {exp.company}
@@ -269,7 +271,7 @@ const TemplateThree = ({ resumeData = {}, containerWidth }) => {
                       </div>
 
                       {exp.startDate && exp.endDate && (
-                        <div className="text-right italic">
+                        <div className="text-right italic shrink-0">
                           {formatYearMonth(exp.startDate)} –{" "}
                           {formatYearMonth(exp.endDate)}
                         </div>

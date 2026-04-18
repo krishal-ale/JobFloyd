@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import ApplicantsTable from "./ApplicantsTable";
-import axios from "axios";
+import axios from "@/utils/axiosInstance";
 import NavBar from "@/components/shared/NavBar";
 import { APPLICATION_API_END_POINT } from "@/utils/constant";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,7 +22,6 @@ const Applicants = () => {
           `${APPLICATION_API_END_POINT}/get-job-applications/${params.id}`,
           { withCredentials: true }
         );
-
         if (res.data.success) {
           dispatch(setApplications(res.data.job?.applications || []));
         }
@@ -35,20 +34,26 @@ const Applicants = () => {
   }, [params.id, dispatch]);
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <NavBar />
-      <div className="max-w-7xl mx-auto mt-10 px-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <h1 className="font-bold text-xl">
-            Applicants ({applicants?.length || 0})
-          </h1>
+
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 className="font-bold text-xl sm:text-2xl text-gray-900">
+              Applicants ({applicants?.length || 0})
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-400 mt-1">
+              Manage applicant status and review resumes.
+            </p>
+          </div>
 
           <Button
             onClick={() => navigate(`/admin/jobs/${params.id}/resume-ranking`)}
-            className="bg-[#0066FF] hover:bg-blue-700 text-white"
+            className="bg-[#0066FF] hover:bg-blue-700 text-white shrink-0 h-10 text-sm px-4"
           >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Rank Resumes with AI
+            <Sparkles className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Rank Resumes with AI</span>
           </Button>
         </div>
 

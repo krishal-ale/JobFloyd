@@ -1,4 +1,5 @@
 import User from "../models/user.model.js";
+import Job from "../models/job.model.js";
 import EmailVerification from "../models/emailVerification.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -26,6 +27,17 @@ export const sendRegisterOtp = async (req, res) => {
         success: false,
       });
     }
+
+    const normalizedPhone = phoneNumber.trim();
+
+conPhoneNumber = await User.findOne({ phoneNumber: normalizedPhone });
+
+if (existingPhoneNumber) {
+  return res.status(400).json({
+    message: "User already exists with this phone number",
+    success: false,
+  });
+}
 
     if (!["jobseeker", "employer"].includes(role)) {
       return res.status(400).json({
@@ -185,11 +197,14 @@ export const verifyRegisterOtp = async (req, res) => {
   }
 };
 
+
+const superAdminOtpStore = {};
+
 export const login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
 
-    if (!email || !password || !role) {
+    if (!email || !password) {
       return res.status(400).json({
         message: "All fields are required",
         success: false,
@@ -198,12 +213,66 @@ export const login = async (req, res) => {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    const user = await User.findOne({ email: normalizedEmail });
-    if (!user) {
+    // Super Admin
+    if (normalizedEmail === "jobfloyd.app@gmail.com") {
+      const adminUser = await User.findOne({ email: normalizedEmail });
+      if (!adminUser) {
+        return res.status(400).json({ message: "Admin not found", success: false });
+      }
+
+      const isMatch = await bcrypt.compare(password, adminUser.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Incorrect password", success: false });
+      }
+
+     
+      if (role !== "admin") {
+        return res.status(400).json({
+          message: "Please select the Admin role",
+          success: false,
+        });
+      }
+
+      
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = Date.now() + 10 * 60 * 1000; // 10 mins
+
+      superAdminOtpStore[normalizedEmail] = { otp, expiresAt };
+
+      const html = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+          <h2>JobFloyd Super Admin Login</h2>
+          <p>Your one-time login code is:</p>
+          <h1 style="letter-spacing: 4px; color: #0066FF;">${otp}</h1>
+          <p>This code will expire in 10 minutes.</p>
+          <p>If you did not request this, please ignore this email.</p>
+        </div>
+      `;
+
+      await sendEmail({
+        to: normalizedEmail,
+        subject: "JobFloyd Super Admin OTP",
+        html,
+      });
+
+      return res.status(200).json({
+        message: "OTP sent to admin email",
+        success: true,
+        requiresOtp: true,
+      });
+    }
+
+    // Users 
+    if (!role) {
       return res.status(400).json({
-        message: "User not found",
+        message: "All fields are required",
         success: false,
       });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(400).json({ message: "User not found", success: false });
     }
 
     if (!user.isEmailVerified) {
@@ -229,25 +298,28 @@ export const login = async (req, res) => {
     }
 
     const tokenData = { id: user._id };
+    const tokenExpiresInMs = 60 * 60 * 1000;
+    const tokenExpiresAt = Date.now() + tokenExpiresInMs;
 
     const token = jwt.sign(tokenData, process.env.SECRET_KEY, {
       expiresIn: "1h",
     });
 
-    const responseUser = {
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      role: user.role,
-      profile: user.profile,
-    };
+    const responseUser = await User.findById(user._id)
+      .select("-password")
+      .populate({
+        path: "savedJobs",
+        populate: [
+          { path: "company" },
+          { path: "applications", select: "applicant status" },
+        ],
+      });
 
     return res
       .status(200)
       .cookie("token", token, {
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000,
+        maxAge: tokenExpiresInMs,
         sameSite: "strict",
         secure: false,
       })
@@ -256,6 +328,7 @@ export const login = async (req, res) => {
         success: true,
         responseUser,
         token,
+        tokenExpiresAt,
       });
   } catch (error) {
     console.log(error);
@@ -266,6 +339,57 @@ export const login = async (req, res) => {
     });
   }
 };
+
+export const verifySuperAdminOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const record = superAdminOtpStore[normalizedEmail];
+
+    if (!record) {
+      return res.status(400).json({ message: "No OTP found. Please login again.", success: false });
+    }
+
+    if (record.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP", success: false });
+    }
+
+    if (Date.now() > record.expiresAt) {
+      delete superAdminOtpStore[normalizedEmail];
+      return res.status(400).json({ message: "OTP expired. Please login again.", success: false });
+    }
+
+    delete superAdminOtpStore[normalizedEmail];
+
+    const user = await User.findOne({ email: normalizedEmail }).select("-password");
+
+    const tokenData = { id: user._id };
+    const tokenExpiresInMs = 60 * 60 * 1000;
+    const tokenExpiresAt = Date.now() + tokenExpiresInMs;
+
+    const token = jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: "1h" });
+
+    return res
+      .status(200)
+      .cookie("token", token, {
+        httpOnly: true,
+        maxAge: tokenExpiresInMs,
+        sameSite: "strict",
+        secure: false,
+      })
+      .json({
+        message: "Welcome, Super Admin!",
+        success: true,
+        responseUser: user,
+        token,
+        tokenExpiresAt,
+      });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Something went wrong", success: false });
+  }
+};     
 
 export const logout = async (req, res) => {
   try {
@@ -338,14 +462,15 @@ export const updateProfile = async (req, res) => {
 
     await user.save();
 
-    const responseUser = {
-      _id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      role: user.role,
-      profile: user.profile,
-    };
+    const responseUser = await User.findById(user._id)
+      .select("-password")
+      .populate({
+        path: "savedJobs",
+        populate: [
+          { path: "company" },
+          { path: "applications", select: "applicant status" },
+        ],
+      });
 
     return res.status(200).json({
       message: "Profile updated successfully",
@@ -362,9 +487,132 @@ export const updateProfile = async (req, res) => {
   }
 };
 
+
+export const toggleSaveJob = async (req, res) => {
+  try {
+    const userId = req.id;
+    const jobId = req.params.jobId;
+
+    const user = await User.findById(userId);
+    const job = await Job.findById(jobId);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    if (!job) {
+      return res.status(404).json({
+        message: "Job not found",
+        success: false,
+      });
+    }
+
+    const alreadySaved = user.savedJobs.some(
+      (savedJobId) => savedJobId.toString() === jobId.toString()
+    );
+
+    if (alreadySaved) {
+      user.savedJobs = user.savedJobs.filter(
+        (savedJobId) => savedJobId.toString() !== jobId.toString()
+      );
+      await user.save();
+
+      const updatedUser = await User.findById(userId)
+        .select("-password")
+        .populate({
+          path: "savedJobs",
+          populate: [
+            { path: "company" },
+            { path: "applications", select: "applicant status" },
+          ],
+        });
+
+      return res.status(200).json({
+        message: "Job removed from saved jobs",
+        success: true,
+        isSaved: false,
+        user: updatedUser,
+      });
+    }
+
+    user.savedJobs.push(jobId);
+    await user.save();
+
+    const updatedUser = await User.findById(userId)
+      .select("-password")
+      .populate({
+        path: "savedJobs",
+        populate: [
+          { path: "company" },
+          { path: "applications", select: "applicant status" },
+        ],
+      });
+
+    return res.status(200).json({
+      message: "Job saved successfully",
+      success: true,
+      isSaved: true,
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.log("toggleSaveJob error:", error);
+    return res.status(500).json({
+      message: "Something went wrong",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+
+export const getSavedJobs = async (req, res) => {
+  try {
+    const user = await User.findById(req.id)
+      .select("savedJobs")
+      .populate({
+        path: "savedJobs",
+        options: { sort: { createdAt: -1 } },
+        populate: [
+          { path: "company" },
+          { path: "applications", select: "applicant status" },
+        ],
+      });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      savedJobs: user.savedJobs || [],
+    });
+  } catch (error) {
+    console.log("getSavedJobs error:", error);
+    return res.status(500).json({
+      message: "Something went wrong",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
 export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.id).select("-password");
+    const user = await User.findById(req.id)
+      .select("-password")
+      .populate({
+        path: "savedJobs",
+        populate: [
+          { path: "company" },
+          { path: "applications", select: "applicant status" },
+        ],
+      });
 
     if (!user) {
       return res.status(404).json({

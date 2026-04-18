@@ -13,17 +13,22 @@ export const SkillsInfoForm = ({
     <div className={skillsInfoStyles.container}>
       <h2 className={skillsInfoStyles.heading}>Skills</h2>
 
-      <div className="space-y-6 mb-6">
+      <div className="space-y-4 mb-4">
         {skillsInfo.map((skill, index) => (
-          <div key={index} className={skillsInfoStyles.item}>
-            <Input
-              label="Skill Name"
-              placeholder="JavaScript"
-              value={skill.name || ""}
-              onChange={({ target }) =>
-                updateArrayItem(index, "name", target.value)
-              }
-            />
+          <div
+            key={index}
+            className={`${skillsInfoStyles.item} gap-3 items-end`}
+          >
+            <div className="flex-1">
+              <Input
+                label="Skill Name"
+                placeholder="JavaScript"
+                value={skill.name || ""}
+                onChange={({ target }) =>
+                  updateArrayItem(index, "name", target.value)
+                }
+              />
+            </div>
 
             {skillsInfo.length > 1 && (
               <button
@@ -38,17 +43,17 @@ export const SkillsInfoForm = ({
         ))}
 
         <button
-  type="button"
-  onClick={() =>
-    addArrayItem({
-      name: "",
-      progress: 0,
-    })
-  }
-  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#0066FF] text-white hover:bg-blue-700 font-semibold transition shadow"
->
-  <Plus size={16} /> Add Skill
-</button>
+          type="button"
+          onClick={() =>
+            addArrayItem({
+              name: "",
+              progress: 0,
+            })
+          }
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0066FF] text-white hover:bg-blue-700 font-semibold transition shadow text-sm"
+        >
+          <Plus size={16} /> Add Skill
+        </button>
       </div>
     </div>
   );
