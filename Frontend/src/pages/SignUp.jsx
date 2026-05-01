@@ -163,7 +163,7 @@ const SignUp = () => {
                 </Label>
                 <Input
                   type="text"
-                  placeholder="Ram Bhattarai"
+                  placeholder="Enter your full name"
                   className="w-full"
                   name="fullName"
                   value={input.fullName}
@@ -177,7 +177,7 @@ const SignUp = () => {
                 </Label>
                 <Input
                   type="email"
-                  placeholder="ram@example.com"
+                  placeholder="Enter your email"
                   className="w-full"
                   name="email"
                   value={input.email}
@@ -191,7 +191,7 @@ const SignUp = () => {
                 </Label>
                 <Input
                   type="text"
-                  placeholder="9816375736"
+                  placeholder="Enter your phone number"
                   className="w-full"
                   name="phoneNumber"
                   value={input.phoneNumber}

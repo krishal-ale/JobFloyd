@@ -9,6 +9,8 @@ import jobRouter from './routes/job.route.js';
 import applicationRouter from './routes/application.route.js';
 import resumeRouter from './routes/resume.route.js';
 import superAdminRouter from './routes/superAdmin.route.js';
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 
@@ -18,10 +20,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 const corsOptions = {
-  origin: 'http://localhost:5173',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-  optionSuccessStatus: 200,
+  optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 
@@ -30,33 +43,8 @@ app.use('/jobfloyd/company', companyRouter);
 app.use('/jobfloyd/job', jobRouter);
 app.use('/jobfloyd/application', applicationRouter);
 app.use('/jobfloyd/resume', resumeRouter);
-
-import bcrypt from "bcrypt";
-app.get("/jobfloyd/seed-admin", async (req, res) => {
-  try {
-    const { default: User } = await import("./models/user.model.js");
-    const existing = await User.findOne({ email: "jobfloyd.app@gmail.com" });
-    if (existing) {
-      return res.json({ message: "Super admin already exists", success: true });
-    }
-    const hashedPassword = await bcrypt.hash("Hapule@202", 10);
-    await User.create({
-      fullName: "JobFloyd Admin",
-      email: "jobfloyd.app@gmail.com",
-      phoneNumber: 9999999999,
-      password: hashedPassword,
-      role: "employer",
-      isEmailVerified: true,
-      profile: { profilePicture: "" },
-    });
-    return res.json({ message: "Super admin created successfully!", success: true });
-  } catch (error) {
-    return res.status(500).json({ message: error.message, success: false });
-  }
-});
-
-
 app.use('/jobfloyd/superadmin', superAdminRouter);
+
 
 
 const PORT = process.env.PORT || 3000;

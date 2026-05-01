@@ -26,6 +26,26 @@ export const registerCompany = async (req, res) => {
             return res.status(400).json({ message: 'Company name is required', success: false });
         }
 
+        if (name){
+            const nameExists = await Company.findOne({ name });
+            if (nameExists) {
+                return res.status(400).json({ message: 'A company with this name already exists', success: false });
+            }
+        }
+
+        if (pan_vat_num) {
+    if (!/^\d{9}$/.test(pan_vat_num)) {
+        return res.status(400).json({ 
+            message: 'PAN/VAT number must be exactly 9 digits (numbers only)', 
+            success: false 
+        });
+    }
+
+    const panExists = await Company.findOne({ pan_vat_num });
+    if (panExists) {
+        return res.status(400).json({ message: 'A company with this PAN/VAT number already exists', success: false });
+    }
+}
         
         if (pan_vat_num) {
             const panExists = await Company.findOne({ pan_vat_num });
@@ -33,6 +53,9 @@ export const registerCompany = async (req, res) => {
                 return res.status(400).json({ message: 'A company with this PAN/VAT number already exists', success: false });
             }
         }
+
+        
+
 
         const company = await Company.create({
             name,

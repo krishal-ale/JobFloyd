@@ -8,6 +8,7 @@ import getDataUri from "../utils/datauri.js";
 import sendEmail from "../utils/sendEmail.js";
 import { isStrongPassword, validateEmail } from "../utils/validators.js";
 
+
 export const sendRegisterOtp = async (req, res) => {
   try {
     const { fullName, email, phoneNumber, password, role } = req.body;
@@ -30,7 +31,7 @@ export const sendRegisterOtp = async (req, res) => {
 
     const normalizedPhone = phoneNumber.trim();
 
-conPhoneNumber = await User.findOne({ phoneNumber: normalizedPhone });
+const  existingPhoneNumber = await User.findOne({ phoneNumber: normalizedPhone });
 
 if (existingPhoneNumber) {
   return res.status(400).json({
@@ -235,8 +236,7 @@ export const login = async (req, res) => {
 
       
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = Date.now() + 10 * 60 * 1000; // 10 mins
-
+      const expiresAt = Date.now() + 10 * 60 * 1000; 
       superAdminOtpStore[normalizedEmail] = { otp, expiresAt };
 
       const html = `

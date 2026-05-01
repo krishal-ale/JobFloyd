@@ -203,7 +203,7 @@ const Login = () => {
               </Label>
               <Input
                 type="email"
-                placeholder="ram@example.com"
+                placeholder="Enter your email"
                 className="w-full"
                 name="email"
                 value={input.email}

@@ -15,7 +15,7 @@ const companySchema = new mongoose.Schema({
         type: String 
     },
     pan_vat_num: { 
-        type: String 
+        type: Number 
     },
     location: { 
         type: String 

@@ -59,7 +59,7 @@ const UpdateProfile = ({ open, setOpen }) => {
     if (res.data.success) {
       dispatch(setUser(res.data.responseUser));
       toast.success(res.data.message);
-      setOpen(false); // ✅ Only close on success
+      setOpen(false); 
     } else {
       toast.error(res.data.message);
     }
@@ -73,8 +73,14 @@ const UpdateProfile = ({ open, setOpen }) => {
   }
 };
   const fileChangeHandler = (e) => {
-    setInput({ ...input, file: e.target.files[0] });
-  };
+  const file = e.target.files[0];
+  if (file && file.type !== "application/pdf") {
+    toast.error("Please select a .pdf file for resume upload");
+    e.target.value = ""; 
+    return;
+  }
+  setInput({ ...input, file });
+};
 
   return (
     <div>

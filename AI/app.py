@@ -255,6 +255,7 @@ def rank_resumes():
         }), 500
 
 
+load_and_train_model()
+
 if __name__ == "__main__":
-    load_and_train_model()
     app.run(host="0.0.0.0", port=5001, debug=True)
