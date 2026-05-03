@@ -31,14 +31,14 @@ export const sendRegisterOtp = async (req, res) => {
 
     const normalizedPhone = phoneNumber.trim();
 
-const  existingPhoneNumber = await User.findOne({ phoneNumber: normalizedPhone });
+    const existingPhoneNumber = await User.findOne({ phoneNumber: normalizedPhone });
 
-if (existingPhoneNumber) {
-  return res.status(400).json({
-    message: "User already exists with this phone number",
-    success: false,
-  });
-}
+    if (existingPhoneNumber) {
+      return res.status(400).json({
+        message: "User already exists with this phone number",
+        success: false,
+      });
+    }
 
     if (!["jobseeker", "employer"].includes(role)) {
       return res.status(400).json({
@@ -201,6 +201,12 @@ export const verifyRegisterOtp = async (req, res) => {
 
 const superAdminOtpStore = {};
 
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  secure: process.env.NODE_ENV === "production",
+};
+
 export const login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -226,7 +232,6 @@ export const login = async (req, res) => {
         return res.status(400).json({ message: "Incorrect password", success: false });
       }
 
-     
       if (role !== "admin") {
         return res.status(400).json({
           message: "Please select the Admin role",
@@ -234,9 +239,8 @@ export const login = async (req, res) => {
         });
       }
 
-      
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = Date.now() + 10 * 60 * 1000; 
+      const expiresAt = Date.now() + 10 * 60 * 1000;
       superAdminOtpStore[normalizedEmail] = { otp, expiresAt };
 
       const html = `
@@ -262,7 +266,7 @@ export const login = async (req, res) => {
       });
     }
 
-    // Users 
+    // Regular Users
     if (!role) {
       return res.status(400).json({
         message: "All fields are required",
@@ -317,12 +321,7 @@ export const login = async (req, res) => {
 
     return res
       .status(200)
-      .cookie("token", token, {
-        httpOnly: true,
-        maxAge: tokenExpiresInMs,
-        sameSite: "strict",
-        secure: false,
-      })
+      .cookie("token", token, { ...cookieOptions, maxAge: tokenExpiresInMs })
       .json({
         message: "Hi " + user.fullName,
         success: true,
@@ -372,12 +371,7 @@ export const verifySuperAdminOtp = async (req, res) => {
 
     return res
       .status(200)
-      .cookie("token", token, {
-        httpOnly: true,
-        maxAge: tokenExpiresInMs,
-        sameSite: "strict",
-        secure: false,
-      })
+      .cookie("token", token, { ...cookieOptions, maxAge: tokenExpiresInMs })
       .json({
         message: "Welcome, Super Admin!",
         success: true,
@@ -389,13 +383,13 @@ export const verifySuperAdminOtp = async (req, res) => {
     console.log(error);
     return res.status(500).json({ message: "Something went wrong", success: false });
   }
-};     
+};
 
 export const logout = async (req, res) => {
   try {
     return res
       .status(200)
-      .cookie("token", "", { httpOnly: true, maxAge: 0 })
+      .cookie("token", "", { ...cookieOptions, maxAge: 0 })
       .json({
         message: "Logged out successfully",
         success: true,
@@ -487,7 +481,6 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-
 export const toggleSaveJob = async (req, res) => {
   try {
     const userId = req.id;
@@ -566,7 +559,6 @@ export const toggleSaveJob = async (req, res) => {
     });
   }
 };
-
 
 export const getSavedJobs = async (req, res) => {
   try {
