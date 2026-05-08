@@ -26,7 +26,11 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      triggerSessionExpired();
+      const url = error.config?.url || "";
+      
+      if (!url.includes("/me")) {
+        triggerSessionExpired();
+      }
     }
 
     return Promise.reject(error);

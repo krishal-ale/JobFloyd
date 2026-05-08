@@ -1,11 +1,28 @@
 export const isStrongPassword = (password) => {
-  const strongPasswordRegex =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#()[\]{}\-_=+~`|;:'",.<>/\\]).{8,}$/;
-
-  return strongPasswordRegex.test(password);
-};
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasDigit = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    return (
+        password.length >= minLength &&
+      hasUpperCase &&
+      hasLowerCase &&
+      hasDigit &&
+      hasSpecialChar
+    );
+  };
 
 export const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  if (!email) return false;
+
+  const hasAtSymbol = email.includes("@");
+  const hasDot = email.includes(".");
+  const hasNoSpaces = !email.includes(" ");
+
+  const parts = email.split("@");
+  const hasOneAt = parts.length === 2;
+
+  return hasAtSymbol && hasDot && hasNoSpaces && hasOneAt;
 };
